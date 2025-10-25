@@ -1,0 +1,130 @@
+[
+  {
+    "query": "What is Merit Scholarship Scheme?",
+    "language": "en",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "Merit Scholarship Scheme is a government scheme. To provide financial assistance to meritorious students from economically weaker sections",
+    "difficulty": "easy",
+    "category": "general"
+  },
+  {
+    "query": "Merit Scholarship Scheme के बारे में बताएं",
+    "language": "hi",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "मेरिट छात्रवृत्ति योजना is a government scheme. आर्थिक रूप से कमजोर वर्ग के मेधावी छात्रों को वित्तीय सहायता प्रदान करना",
+    "difficulty": "easy",
+    "category": "general"
+  },
+  {
+    "query": "Merit Scholarship Scheme பற்றி சொல்லுங்கள்",
+    "language": "ta",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "மெரிட் உதவித்தொகை திட்டம் is a government scheme. பொருளாதார ரீதியாக பலவீனமான பிரிவின் மேதையான மாணவர்களுக்கு நிதி உதவி வழங்க",
+    "difficulty": "easy",
+    "category": "general"
+  },
+  {
+    "query": "Who is eligible for Merit Scholarship Scheme?",
+    "language": "en",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "Eligibility criteria: Students from economically weaker sections, Minimum 50% marks in previous examination, Family income less than ₹2.5 lakh per annum",
+    "difficulty": "medium",
+    "category": "eligibility"
+  },
+  {
+    "query": "Merit Scholarship Scheme के लिए कौन पात्र है?",
+    "language": "hi",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "Eligibility criteria: आर्थिक रूप से कमजोर वर्ग के छात्र, पिछली परीक्षा में न्यूनतम 50% अंक, पारिवारिक आय ₹2.5 लाख प्रति वर्ष से कम",
+    "difficulty": "medium",
+    "category": "eligibility"
+  },
+  {
+    "query": "What are the benefits of Merit Scholarship Scheme?",
+    "language": "en",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "Benefits: ₹10,000 to ₹20,000 per annum based on course",
+    "difficulty": "easy",
+    "category": "benefits"
+  },
+  {
+    "query": "How to apply for Merit Scholarship Scheme?",
+    "language": "en",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "Application procedure: ",
+    "difficulty": "hard",
+    "category": "procedure"
+  },
+  {
+    "query": "Tell me about Education schemes",
+    "language": "en",
+    "expectedScheme": "nsp-merit-scholarship",
+    "expectedResponse": "Education scheme: Merit Scholarship Scheme",
+    "difficulty": "medium",
+    "category": "category"
+  },
+  {
+    "query": "What is PM Kisan Samman Nidhi?",
+    "language": "en",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "PM Kisan Samman Nidhi is a government scheme. To provide income support to all landholding farmers families in the country",
+    "difficulty": "easy",
+    "category": "general"
+  },
+  {
+    "query": "PM Kisan Samman Nidhi के बारे में बताएं",
+    "language": "hi",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "पीएम किसान सम्मान निधि is a government scheme. देश के सभी भूमिधारक किसान परिवारों को आय सहायता प्रदान करना",
+    "difficulty": "easy",
+    "category": "general"
+  },
+  {
+    "query": "PM Kisan Samman Nidhi பற்றி சொல்லுங்கள்",
+    "language": "ta",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "பி.எம். किसान सम्मान निधि is a government scheme. நாட்டின் அனைத்து நில உரிமையாளர் விவசாயி குடும்பங்களுக்கும் வருமான ஆதரவு வழங்க",
+    "difficulty": "easy",
+    "category": "general"
+  },
+  {
+    "query": "Who is eligible for PM Kisan Samman Nidhi?",
+    "language": "en",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "Eligibility criteria: All landholding farmers families, Small and marginal farmers, Family should have cultivable land",
+    "difficulty": "medium",
+    "category": "eligibility"
+  },
+  {
+    "query": "PM Kisan Samman Nidhi के लिए कौन पात्र है?",
+    "language": "hi",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "Eligibility criteria: सभी भूमिधारक किसान परिवार, छोटे और सीमांत किसान, परिवार के पास खेती योग्य भूमि होनी चाहिए",
+    "difficulty": "medium",
+    "category": "eligibility"
+  },
+  {
+    "query": "What are the benefits of PM Kisan Samman Nidhi?",
+    "language": "en",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "Benefits: ₹6,000 per year in three equal installments of ₹2,000 each",
+    "difficulty": "easy",
+    "category": "benefits"
+  },
+  {
+    "query": "How to apply for PM Kisan Samman Nidhi?",
+    "language": "en",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "Application procedure: Visit nearest Common Service Centre (CSC), Submit required documents, Fill the application form, Get application receipt",
+    "difficulty": "hard",
+    "category": "procedure"
+  },
+  {
+    "query": "Tell me about Agriculture schemes",
+    "language": "en",
+    "expectedScheme": "pm-kisan-samman-nidhi",
+    "expectedResponse": "Agriculture scheme: PM Kisan Samman Nidhi",
+    "difficulty": "medium",
+    "category": "category"
+  }
+]

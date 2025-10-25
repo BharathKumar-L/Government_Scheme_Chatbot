@@ -1,0 +1,134 @@
+[
+  {
+    "id": "nsp-merit-scholarship",
+    "name": "Merit Scholarship Scheme",
+    "nameHindi": "मेरिट छात्रवृत्ति योजना",
+    "nameTamil": "மெரிட் உதவித்தொகை திட்டம்",
+    "category": "Education",
+    "categoryHindi": "शिक्षा",
+    "categoryTamil": "கல்வி",
+    "objective": "To provide financial assistance to meritorious students from economically weaker sections",
+    "objectiveHindi": "आर्थिक रूप से कमजोर वर्ग के मेधावी छात्रों को वित्तीय सहायता प्रदान करना",
+    "objectiveTamil": "பொருளாதார ரீதியாக பலவீனமான பிரிவின் மேதையான மாணவர்களுக்கு நிதி உதவி வழங்க",
+    "eligibility": [
+      "Students from economically weaker sections",
+      "Minimum 50% marks in previous examination",
+      "Family income less than ₹2.5 lakh per annum"
+    ],
+    "eligibilityHindi": [
+      "आर्थिक रूप से कमजोर वर्ग के छात्र",
+      "पिछली परीक्षा में न्यूनतम 50% अंक",
+      "पारिवारिक आय ₹2.5 लाख प्रति वर्ष से कम"
+    ],
+    "eligibilityTamil": [
+      "பொருளாதார ரீதியாக பலவீனமான பிரிவின் மாணவர்கள்",
+      "முந்தைய தேர்வில் குறைந்தது 50% மதிப்பெண்கள்",
+      "குடும்ப வருமானம் ஆண்டுக்கு ₹2.5 லட்சத்திற்கு குறைவு"
+    ],
+    "documentsRequired": [],
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "₹10,000 to ₹20,000 per annum based on course",
+    "benefitsHindi": "कोर्स के आधार पर प्रति वर्ष ₹10,000 से ₹20,000",
+    "benefitsTamil": "பாடத்தின் அடிப்படையில் ஆண்டுக்கு ₹10,000 முதல் ₹20,000 வரை",
+    "deadline": "Ongoing",
+    "deadlineHindi": "",
+    "deadlineTamil": "",
+    "contactInfo": "NSP Helpline: 0120-6619540",
+    "contactInfoHindi": "एनएसपी हेल्पलाइन: 0120-6619540",
+    "contactInfoTamil": "என்.எஸ்.பி உதவி வரி: 0120-6619540",
+    "website": "https://scholarships.gov.in",
+    "source": "NSP",
+    "lastUpdated": "2025-10-17T05:55:29.231Z",
+    "tags": [
+      "education",
+      "scholarship",
+      "merit",
+      "nsp"
+    ]
+  },
+  {
+    "id": "pm-kisan-samman-nidhi",
+    "name": "PM Kisan Samman Nidhi",
+    "nameHindi": "पीएम किसान सम्मान निधि",
+    "nameTamil": "பி.எம். किसान सम्मान निधि",
+    "category": "Agriculture",
+    "categoryHindi": "कृषि",
+    "categoryTamil": "விவசாயம்",
+    "objective": "To provide income support to all landholding farmers families in the country",
+    "objectiveHindi": "देश के सभी भूमिधारक किसान परिवारों को आय सहायता प्रदान करना",
+    "objectiveTamil": "நாட்டின் அனைத்து நில உரிமையாளர் விவசாயி குடும்பங்களுக்கும் வருமான ஆதரவு வழங்க",
+    "eligibility": [
+      "All landholding farmers families",
+      "Small and marginal farmers",
+      "Family should have cultivable land"
+    ],
+    "eligibilityHindi": [
+      "सभी भूमिधारक किसान परिवार",
+      "छोटे और सीमांत किसान",
+      "परिवार के पास खेती योग्य भूमि होनी चाहिए"
+    ],
+    "eligibilityTamil": [
+      "அனைத்து நில உரிமையாளர் விவசாயி குடும்பங்கள்",
+      "சிறிய மற்றும் விளிம்பு விவசாயிகள்",
+      "குடும்பத்திற்கு விவசாயம் செய்யக்கூடிய நிலம் இருக்க வேண்டும்"
+    ],
+    "documentsRequired": [
+      "Land records",
+      "Aadhaar card",
+      "Bank account details",
+      "Mobile number"
+    ],
+    "documentsRequiredHindi": [
+      "भूमि रिकॉर्ड",
+      "आधार कार्ड",
+      "बैंक खाता विवरण",
+      "मोबाइल नंबर"
+    ],
+    "documentsRequiredTamil": [
+      "நில பதிவுகள்",
+      "ஆதார் அட்டை",
+      "வங்கி கணக்கு விவரங்கள்",
+      "மொபைல் எண்"
+    ],
+    "applicationProcedure": [
+      "Visit nearest Common Service Centre (CSC)",
+      "Submit required documents",
+      "Fill the application form",
+      "Get application receipt"
+    ],
+    "applicationProcedureHindi": [
+      "निकटतम कॉमन सर्विस सेंटर (CSC) पर जाएं",
+      "आवश्यक दस्तावेज जमा करें",
+      "आवेदन पत्र भरें",
+      "आवेदन रसीद प्राप्त करें"
+    ],
+    "applicationProcedureTamil": [
+      "அருகிலுள்ள பொது சேவை மையத்திற்குச் செல்லுங்கள்",
+      "தேவையான ஆவணங்களை சமர்ப்பிக்கவும்",
+      "விண்ணப்ப படிவத்தை நிரப்பவும்",
+      "விண்ணப்ப ரசீதைப் பெறவும்"
+    ],
+    "benefits": "₹6,000 per year in three equal installments of ₹2,000 each",
+    "benefitsHindi": "प्रति वर्ष ₹6,000 तीन समान किस्तों में ₹2,000 प्रत्येक",
+    "benefitsTamil": "ஆண்டுக்கு ₹6,000 மூன்று சமமான தவணைகளில் ₹2,000 ஒவ்வொன்றும்",
+    "deadline": "Ongoing",
+    "deadlineHindi": "चल रहा है",
+    "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
+    "contactInfo": "PM-KISAN Helpline: 1800-180-1551",
+    "contactInfoHindi": "पीएम-किसान हेल्पलाइन: 1800-180-1551",
+    "contactInfoTamil": "பி.எம்.-किसान उतावी वरि: 1800-180-1551",
+    "website": "https://pmkisan.gov.in",
+    "source": "PM Kisan",
+    "lastUpdated": "2025-10-17T05:55:29.231Z",
+    "tags": [
+      "agriculture",
+      "farmer",
+      "income support",
+      "pm kisan"
+    ]
+  }
+]

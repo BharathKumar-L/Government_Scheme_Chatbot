@@ -1,0 +1,12 @@
+{
+  "totalSchemes": 0,
+  "trainingAccuracy": 1,
+  "lastTrainingDate": "2025-10-17T05:55:29.239Z",
+  "modelVersion": "1.0.0",
+  "validationResults": {
+    "totalTestQueries": 4,
+    "successfulRetrievals": 4,
+    "averageRelevanceScore": 0.15108909806604098,
+    "responseTime": 1
+  }
+}
