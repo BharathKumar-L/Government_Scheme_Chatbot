@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Menu, X, Globe, MessageCircle, FileText, Info } from 'lucide-react'
+import { Menu, X, Globe, MessageCircle, FileText, Info, Shield } from 'lucide-react'
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
@@ -67,6 +67,15 @@ const Header = () => {
 
           {/* Language Selector & Mobile Menu */}
           <div className="flex items-center space-x-4">
+            {/* Admin Link */}
+            <Link
+              to="/admin/login"
+              className="hidden sm:flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            >
+              <Shield className="h-4 w-4" />
+              <span>Admin</span>
+            </Link>
+
             {/* Language Selector */}
             <Select
               value={i18n.language}
@@ -122,6 +131,16 @@ const Header = () => {
                       </Link>
                     )
                   })}
+                  
+                  {/* Admin Link for Mobile */}
+                  <Link
+                    to="/admin/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    <Shield className="h-5 w-5" />
+                    <span>Admin</span>
+                  </Link>
                 </div>
               </SheetContent>
             </Sheet>

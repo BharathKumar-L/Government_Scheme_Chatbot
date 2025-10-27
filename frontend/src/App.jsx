@@ -8,6 +8,8 @@ import Header from './components/Header'
 import ChatPage from './pages/ChatPage'
 import SchemesPage from './pages/SchemesPage'
 import AboutPage from './pages/AboutPage'
+import AdminLoginPage from './pages/AdminLoginPage'
+import AdminPage from './pages/AdminPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
 // Services
@@ -77,6 +79,8 @@ function App() {
           <Route path="/" element={<ChatPage />} />
           <Route path="/schemes" element={<SchemesPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>
       

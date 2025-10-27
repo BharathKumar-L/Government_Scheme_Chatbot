@@ -1,9 +1,60 @@
 [
   {
-    "id": "pm-kisan-1",
+    "id": "nsp-merit-scholarship",
+    "name": "Merit Scholarship Scheme",
+    "nameHindi": "मेरिट छात्रवृत्ति योजना",
+    "nameTamil": "மெரிட் உதவித்தொகை திட்டம்",
+    "category": "Education",
+    "categoryHindi": "शिक्षा",
+    "categoryTamil": "கல்வி",
+    "objective": "To provide financial assistance to meritorious students from economically weaker sections",
+    "objectiveHindi": "आर्थिक रूप से कमजोर वर्ग के मेधावी छात्रों को वित्तीय सहायता प्रदान करना",
+    "objectiveTamil": "பொருளாதார ரீதியாக பலவீனமான பிரிவின் மேதையான மாணவர்களுக்கு நிதி உதவி வழங்க",
+    "eligibility": [
+      "Students from economically weaker sections",
+      "Minimum 50% marks in previous examination",
+      "Family income less than ₹2.5 lakh per annum"
+    ],
+    "eligibilityHindi": [
+      "आर्थिक रूप से कमजोर वर्ग के छात्र",
+      "पिछली परीक्षा में न्यूनतम 50% अंक",
+      "पारिवारिक आय ₹2.5 लाख प्रति वर्ष से कम"
+    ],
+    "eligibilityTamil": [
+      "பொருளாதார ரீதியாக பலவீனமான பிரிவின் மாணவர்கள்",
+      "முந்தைய தேர்வில் குறைந்தது 50% மதிப்பெண்கள்",
+      "குடும்ப வருமானம் ஆண்டுக்கு ₹2.5 லட்சத்திற்கு குறைவு"
+    ],
+    "documentsRequired": [],
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "₹10,000 to ₹20,000 per annum based on course",
+    "benefitsHindi": "कोर्स के आधार पर प्रति वर्ष ₹10,000 से ₹20,000",
+    "benefitsTamil": "பாடத்தின் அடிப்படையில் ஆண்டுக்கு ₹10,000 முதல் ₹20,000 வரை",
+    "deadline": "Ongoing",
+    "deadlineHindi": "",
+    "deadlineTamil": "",
+    "contactInfo": "NSP Helpline: 0120-6619540",
+    "contactInfoHindi": "एनएसपी हेल्पलाइन: 0120-6619540",
+    "contactInfoTamil": "என்.எஸ்.பி உதவி வரி: 0120-6619540",
+    "website": "https://scholarships.gov.in",
+    "source": "NSP",
+    "lastUpdated": "2025-10-17T05:55:29.231Z",
+    "tags": [
+      "education",
+      "scholarship",
+      "merit",
+      "nsp"
+    ]
+  },
+  {
+    "id": "pm-kisan-samman-nidhi",
     "name": "PM Kisan Samman Nidhi",
     "nameHindi": "पीएम किसान सम्मान निधि",
-    "nameTamil": "பி.எம். கிசான் சம்மான் நிதி",
+    "nameTamil": "பி.எம். किसान सम्मान निधि",
     "category": "Agriculture",
     "categoryHindi": "कृषि",
     "categoryTamil": "விவசாயம்",
@@ -69,9 +120,10 @@
     "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
     "contactInfo": "PM-KISAN Helpline: 1800-180-1551",
     "contactInfoHindi": "पीएम-किसान हेल्पलाइन: 1800-180-1551",
-    "contactInfoTamil": "பி.எம்.-கிசான் உதவி வரி: 1800-180-1551",
+    "contactInfoTamil": "பி.எம்.-किसान उतावी वरि: 1800-180-1551",
     "website": "https://pmkisan.gov.in",
-    "lastUpdated": "2025-10-17T05:32:54.971Z",
+    "source": "PM Kisan",
+    "lastUpdated": "2025-10-17T05:55:29.231Z",
     "tags": [
       "agriculture",
       "farmer",
@@ -80,167 +132,227 @@
     ]
   },
   {
-    "id": "mgnrega-2",
-    "name": "Mahatma Gandhi National Rural Employment Guarantee Act",
-    "nameHindi": "महात्मा गांधी राष्ट्रीय ग्रामीण रोजगार गारंटी अधिनियम",
-    "nameTamil": "மகாத்மா காந்தி தேசிய கிராமப்புற வேலைவாய்ப்பு உத்தரவாத சட்டம்",
-    "category": "Employment",
-    "categoryHindi": "रोजगार",
-    "categoryTamil": "வேலைவாய்ப்பு",
-    "objective": "To provide at least 100 days of guaranteed wage employment in a financial year to every rural household",
-    "objectiveHindi": "प्रत्येक ग्रामीण परिवार को एक वित्तीय वर्ष में कम से कम 100 दिनों की गारंटीकृत मजदूरी रोजगार प्रदान करना",
-    "objectiveTamil": "ஒவ்வொரு கிராமப்புற குடும்பத்திற்கும் ஒரு நிதியாண்டில் குறைந்தது 100 நாட்கள் உத்தரவாத ஊதிய வேலைவாய்ப்பு வழங்க",
+    "id": "\"pm-kisan-samman-nidhi\"-1761489496120-0",
+    "name": "\"PM Kisan Samman Nidhi\"",
+    "nameHindi": "",
+    "nameTamil": "",
+    "category": "\"Agriculture\"",
+    "categoryHindi": "",
+    "categoryTamil": "",
+    "objective": "\"Income support for farmers\"",
+    "objectiveHindi": "",
+    "objectiveTamil": "",
     "eligibility": [
-      "Adult members of rural households",
-      "Willing to do unskilled manual work",
-      "Should be registered in the job card"
+      "\"All landholding farmers\""
     ],
-    "eligibilityHindi": [
-      "ग्रामीण परिवारों के वयस्क सदस्य",
-      "अकुशल शारीरिक कार्य करने के लिए तैयार",
-      "जॉब कार्ड में पंजीकृत होना चाहिए"
-    ],
-    "eligibilityTamil": [
-      "கிராமப்புற குடும்பங்களின் வயது வந்த உறுப்பினர்கள்",
-      "திறமையற்ற கைவினை வேலை செய்ய தயாராக இருக்க வேண்டும்",
-      "வேலை அட்டையில் பதிவு செய்யப்பட்டிருக்க வேண்டும்"
-    ],
+    "eligibilityHindi": [],
+    "eligibilityTamil": [],
     "documentsRequired": [
-      "Job card",
-      "Aadhaar card",
-      "Bank account details"
+      "\"Land records"
     ],
-    "documentsRequiredHindi": [
-      "जॉब कार्ड",
-      "आधार कार्ड",
-      "बैंक खाता विवरण"
-    ],
-    "documentsRequiredTamil": [
-      "வேலை அட்டை",
-      "ஆதார் அட்டை",
-      "வங்கி கணக்கு விவரங்கள்"
-    ],
-    "applicationProcedure": [
-      "Apply for job card at Gram Panchayat",
-      "Submit required documents",
-      "Get job card issued",
-      "Demand work from Gram Panchayat"
-    ],
-    "applicationProcedureHindi": [
-      "ग्राम पंचायत में जॉब कार्ड के लिए आवेदन करें",
-      "आवश्यक दस्तावेज जमा करें",
-      "जॉब कार्ड जारी कराएं",
-      "ग्राम पंचायत से काम की मांग करें"
-    ],
-    "applicationProcedureTamil": [
-      "கிராம பஞ்சாயத்தில் வேலை அட்டைக்கு விண்ணப்பிக்கவும்",
-      "தேவையான ஆவணங்களை சமர்ப்பிக்கவும்",
-      "வேலை அட்டை வழங்கப்படுகிறது",
-      "கிராம பஞ்சாயத்திடமிருந்து வேலை கோரவும்"
-    ],
-    "benefits": "Minimum wage as per state rates (₹200-₹350 per day)",
-    "benefitsHindi": "राज्य दरों के अनुसार न्यूनतम मजदूरी (₹200-₹350 प्रति दिन)",
-    "benefitsTamil": "மாநில விகிதங்களின்படி குறைந்தபட்ச ஊதியம் (₹200-₹350 ஒரு நாளுக்கு)",
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "\"₹6000 per year\"",
+    "benefitsHindi": "",
+    "benefitsTamil": "",
     "deadline": "Ongoing",
     "deadlineHindi": "चल रहा है",
     "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
-    "contactInfo": "MGNREGA Helpline: 1800-345-3240",
-    "contactInfoHindi": "मनरेगा हेल्पलाइन: 1800-345-3240",
-    "contactInfoTamil": "மன்ரேகா உதவி வரி: 1800-345-3240",
-    "website": "https://nrega.nic.in",
-    "lastUpdated": "2025-10-17T05:32:54.972Z",
-    "tags": [
-      "employment",
-      "rural",
-      "mgnrega",
-      "job guarantee"
-    ]
+    "contactInfo": "Aadhaar card\"",
+    "contactInfoHindi": "",
+    "contactInfoTamil": "",
+    "website": "\"1800-180-1551\"",
+    "lastUpdated": "2025-10-26T14:38:16.120Z",
+    "tags": [],
+    "source": "Uploaded from sample_schemes.csv"
   },
   {
-    "id": "pradhan-mantri-awas-yojana-3",
-    "name": "Pradhan Mantri Awas Yojana (PMAY)",
-    "nameHindi": "प्रधानमंत्री आवास योजना",
-    "nameTamil": "பிரதமர் அவாஸ் யோஜனா",
-    "category": "Housing",
-    "categoryHindi": "आवास",
-    "categoryTamil": "வீடு",
-    "objective": "To provide affordable housing to the urban and rural poor",
-    "objectiveHindi": "शहरी और ग्रामीण गरीबों को किफायती आवास प्रदान करना",
-    "objectiveTamil": "நகர்ப்புற மற்றும் கிராமப்புற ஏழைகளுக்கு மலிவு வீடு வழங்க",
+    "id": "\"mgnrega\"-1761489496120-1",
+    "name": "\"MGNREGA\"",
+    "nameHindi": "",
+    "nameTamil": "",
+    "category": "\"Employment\"",
+    "categoryHindi": "",
+    "categoryTamil": "",
+    "objective": "\"Guaranteed employment in rural areas\"",
+    "objectiveHindi": "",
+    "objectiveTamil": "",
     "eligibility": [
-      "Economically Weaker Section (EWS)",
-      "Lower Income Group (LIG)",
-      "Middle Income Group (MIG)",
-      "Beneficiary should not own a pucca house"
+      "\"Adult members of rural households\""
     ],
-    "eligibilityHindi": [
-      "आर्थिक रूप से कमजोर वर्ग (EWS)",
-      "निम्न आय समूह (LIG)",
-      "मध्यम आय समूह (MIG)",
-      "लाभार्थी के पास पक्का मकान नहीं होना चाहिए"
-    ],
-    "eligibilityTamil": [
-      "பொருளாதார ரீதியாக பலவீனமான பிரிவு (EWS)",
-      "குறைந்த வருமான குழு (LIG)",
-      "நடுத்தர வருமான குழு (MIG)",
-      "பயனாளிக்கு கெட்டி வீடு இருக்கக்கூடாது"
-    ],
+    "eligibilityHindi": [],
+    "eligibilityTamil": [],
     "documentsRequired": [
-      "Aadhaar card",
-      "Income certificate",
-      "Caste certificate (if applicable)",
-      "Bank account details",
-      "Land documents"
+      "\"Job card"
     ],
-    "documentsRequiredHindi": [
-      "आधार कार्ड",
-      "आय प्रमाण पत्र",
-      "जाति प्रमाण पत्र (यदि लागू हो)",
-      "बैंक खाता विवरण",
-      "भूमि दस्तावेज"
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "\"Minimum wage as per state rates\"",
+    "benefitsHindi": "",
+    "benefitsTamil": "",
+    "deadline": "Ongoing",
+    "deadlineHindi": "चल रहा है",
+    "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
+    "contactInfo": "Aadhaar card\"",
+    "contactInfoHindi": "",
+    "contactInfoTamil": "",
+    "website": "\"1800-345-3240\"",
+    "lastUpdated": "2025-10-26T14:38:16.120Z",
+    "tags": [],
+    "source": "Uploaded from sample_schemes.csv"
+  },
+  {
+    "id": "\"pradhan-mantri-awas-yojana\"-1761489496120-2",
+    "name": "\"Pradhan Mantri Awas Yojana\"",
+    "nameHindi": "",
+    "nameTamil": "",
+    "category": "\"Housing\"",
+    "categoryHindi": "",
+    "categoryTamil": "",
+    "objective": "\"Affordable housing for urban and rural poor\"",
+    "objectiveHindi": "",
+    "objectiveTamil": "",
+    "eligibility": [
+      "\"Economically Weaker Section\""
     ],
-    "documentsRequiredTamil": [
-      "ஆதார் அட்டை",
-      "வருமான சான்றிதழ்",
-      "சாதி சான்றிதழ் (பொருந்தினால்)",
-      "வங்கி கணக்கு விவரங்கள்",
-      "நில ஆவணங்கள்"
+    "eligibilityHindi": [],
+    "eligibilityTamil": [],
+    "documentsRequired": [
+      "\"Aadhaar card"
     ],
-    "applicationProcedure": [
-      "Visit nearest CSC or Municipal Corporation",
-      "Submit application with required documents",
-      "Get application number",
-      "Wait for approval and sanction"
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "\"Up to ₹2.5 lakh for EWS/LIG\"",
+    "benefitsHindi": "",
+    "benefitsTamil": "",
+    "deadline": "Ongoing",
+    "deadlineHindi": "चल रहा है",
+    "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
+    "contactInfo": "Income certificate\"",
+    "contactInfoHindi": "",
+    "contactInfoTamil": "",
+    "website": "\"1800-11-6163\"",
+    "lastUpdated": "2025-10-26T14:38:16.120Z",
+    "tags": [],
+    "source": "Uploaded from sample_schemes.csv"
+  },
+  {
+    "id": "\"atal-pension-yojana\"-1761489496120-3",
+    "name": "\"Atal Pension Yojana\"",
+    "nameHindi": "",
+    "nameTamil": "",
+    "category": "\"Social Security\"",
+    "categoryHindi": "",
+    "categoryTamil": "",
+    "objective": "\"Pension for unorganized sector workers\"",
+    "objectiveHindi": "",
+    "objectiveTamil": "",
+    "eligibility": [
+      "\"18-40 years age\""
     ],
-    "applicationProcedureHindi": [
-      "निकटतम CSC या नगर निगम पर जाएं",
-      "आवश्यक दस्तावेजों के साथ आवेदन जमा करें",
-      "आवेदन संख्या प्राप्त करें",
-      "अनुमोदन और स्वीकृति की प्रतीक्षा करें"
+    "eligibilityHindi": [],
+    "eligibilityTamil": [],
+    "documentsRequired": [
+      "\"Aadhaar card"
     ],
-    "applicationProcedureTamil": [
-      "அருகிலுள்ள CSC அல்லது மாநகராட்சிக்குச் செல்லுங்கள்",
-      "தேவையான ஆவணங்களுடன் விண்ணப்பத்தை சமர்ப்பிக்கவும்",
-      "விண்ணப்ப எண்ணைப் பெறவும்",
-      "அனுமதி மற்றும் ஒப்புதலுக்காக காத்திருக்கவும்"
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "\"₹1000-5000 per month\"",
+    "benefitsHindi": "",
+    "benefitsTamil": "",
+    "deadline": "Ongoing",
+    "deadlineHindi": "चल रहा है",
+    "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
+    "contactInfo": "Bank account\"",
+    "contactInfoHindi": "",
+    "contactInfoTamil": "",
+    "website": "\"1800-180-1100\"",
+    "lastUpdated": "2025-10-26T14:38:16.120Z",
+    "tags": [],
+    "source": "Uploaded from sample_schemes.csv"
+  },
+  {
+    "id": "\"pradhan-mantri-jan-dhan-yojana\"-1761489496120-4",
+    "name": "\"Pradhan Mantri Jan Dhan Yojana\"",
+    "nameHindi": "",
+    "nameTamil": "",
+    "category": "\"Financial Inclusion\"",
+    "categoryHindi": "",
+    "categoryTamil": "",
+    "objective": "\"Banking for all\"",
+    "objectiveHindi": "",
+    "objectiveTamil": "",
+    "eligibility": [
+      "\"All citizens\""
     ],
-    "benefits": "Up to ₹2.5 lakh for EWS/LIG and ₹6 lakh for MIG",
-    "benefitsHindi": "EWS/LIG के लिए ₹2.5 लाख तक और MIG के लिए ₹6 लाख तक",
-    "benefitsTamil": "EWS/LIG க்கு ₹2.5 லட்சம் வரை மற்றும் MIG க்கு ₹6 லட்சம் வரை",
-    "deadline": "March 2024",
-    "deadlineHindi": "मार्च 2024",
-    "deadlineTamil": "மார்ச் 2024",
-    "contactInfo": "PMAY Helpline: 1800-11-6163",
-    "contactInfoHindi": "पीएमएवाई हेल्पलाइन: 1800-11-6163",
-    "contactInfoTamil": "பி.எம்.ஏ.வை உதவி வரி: 1800-11-6163",
-    "website": "https://pmaymis.gov.in",
-    "lastUpdated": "2025-10-17T05:32:54.972Z",
-    "tags": [
-      "housing",
-      "pmay",
-      "affordable housing",
-      "urban",
-      "rural"
-    ]
+    "eligibilityHindi": [],
+    "eligibilityTamil": [],
+    "documentsRequired": [
+      "\"Aadhaar card"
+    ],
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "\"Zero balance account\"",
+    "benefitsHindi": "",
+    "benefitsTamil": "",
+    "deadline": "Ongoing",
+    "deadlineHindi": "चल रहा है",
+    "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
+    "contactInfo": "Address proof\"",
+    "contactInfoHindi": "",
+    "contactInfoTamil": "",
+    "website": "\"1800-180-1111\"",
+    "lastUpdated": "2025-10-26T14:38:16.120Z",
+    "tags": [],
+    "source": "Uploaded from sample_schemes.csv"
+  },
+  {
+    "id": "scheme-1761489496120-5",
+    "name": "Untitled Scheme",
+    "nameHindi": "",
+    "nameTamil": "",
+    "category": "General",
+    "categoryHindi": "",
+    "categoryTamil": "",
+    "objective": "",
+    "objectiveHindi": "",
+    "objectiveTamil": "",
+    "eligibility": [],
+    "eligibilityHindi": [],
+    "eligibilityTamil": [],
+    "documentsRequired": [],
+    "documentsRequiredHindi": [],
+    "documentsRequiredTamil": [],
+    "applicationProcedure": [],
+    "applicationProcedureHindi": [],
+    "applicationProcedureTamil": [],
+    "benefits": "",
+    "benefitsHindi": "",
+    "benefitsTamil": "",
+    "deadline": "Ongoing",
+    "deadlineHindi": "चल रहा है",
+    "deadlineTamil": "நடந்து கொண்டிருக்கிறது",
+    "contactInfo": "",
+    "contactInfoHindi": "",
+    "contactInfoTamil": "",
+    "website": "",
+    "lastUpdated": "2025-10-26T14:38:16.120Z",
+    "tags": [],
+    "source": "Uploaded from sample_schemes.csv"
   }
 ]

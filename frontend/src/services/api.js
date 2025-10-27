@@ -16,9 +16,14 @@ api.interceptors.request.use(
   (config) => {
     // Add auth token if available
     const token = localStorage.getItem('auth-token')
+    const adminToken = localStorage.getItem('admin-session')
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    } else if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`
     }
+    
     return config
   },
   (error) => {
@@ -122,6 +127,55 @@ export const translationAPI = {
       sourceLang,
       targetLang
     })
+  }
+}
+
+// Admin API
+export const adminAPI = {
+  login: async (credentials) => {
+    return await api.post('/admin/login', credentials)
+  },
+  
+  logout: async () => {
+    return await api.post('/admin/logout')
+  },
+  
+  verifySession: async () => {
+    return await api.get('/admin/verify')
+  },
+  
+  getSchemes: async () => {
+    return await api.get('/admin/schemes')
+  },
+  
+  getSchemeById: async (id) => {
+    return await api.get(`/admin/schemes/${id}`)
+  },
+  
+  addScheme: async (schemeData) => {
+    return await api.post('/admin/schemes', schemeData)
+  },
+  
+  updateScheme: async (id, schemeData) => {
+    return await api.put(`/admin/schemes/${id}`, schemeData)
+  },
+  
+  deleteScheme: async (id) => {
+    return await api.delete(`/admin/schemes/${id}`)
+  },
+  
+  uploadDataset: async (file) => {
+    const formData = new FormData()
+    formData.append('dataset', file)
+    return await api.post('/admin/upload-dataset', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+  
+  getStats: async () => {
+    return await api.get('/admin/stats')
   }
 }
 

@@ -1,4 +1,11 @@
 const axios = require('axios');
+const { 
+  translateText: freeTranslateText, 
+  detectLanguage: freeDetectLanguage,
+  getSupportedLanguages: freeGetSupportedLanguages,
+  translateBatch: freeTranslateBatch,
+  enhancedFallbackTranslation
+} = require('./freeTranslation');
 
 // Language codes mapping
 const LANGUAGE_CODES = {
@@ -11,7 +18,7 @@ const LANGUAGE_CODES = {
 };
 
 /**
- * Translate text using Google Translate API
+ * Translate text using free translation services
  */
 async function translateText(text, sourceLang, targetLang) {
   try {
@@ -24,38 +31,14 @@ async function translateText(text, sourceLang, targetLang) {
       return text;
     }
     
-    // Check if API key is available
-    if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
-      console.warn('⚠️ Google Translate API key not found, using fallback translation');
-      return fallbackTranslation(text, source, target);
-    }
-    
-    const response = await axios.post(
-      `https://translation.googleapis.com/language/translate/v2?key=${process.env.GOOGLE_TRANSLATE_API_KEY}`,
-      {
-        q: text,
-        source: source,
-        target: target,
-        format: 'text'
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
-    if (response.data && response.data.data && response.data.data.translations) {
-      return response.data.data.translations[0].translatedText;
-    }
-    
-    throw new Error('Invalid response from Google Translate API');
+    // Use free translation services
+    return await freeTranslateText(text, source, target);
     
   } catch (error) {
     console.error('❌ Translation error:', error.message);
     
-    // Fallback to simple translation
-    return fallbackTranslation(text, sourceLang, targetLang);
+    // Fallback to enhanced local translation
+    return enhancedFallbackTranslation(text, sourceLang, targetLang);
   }
 }
 
@@ -179,28 +162,14 @@ function fallbackTranslation(text, sourceLang, targetLang) {
  * Detect language of the input text
  */
 function detectLanguage(text) {
-  // Simple language detection based on character sets
-  const hindiRegex = /[\u0900-\u097F]/;
-  const tamilRegex = /[\u0B80-\u0BFF]/;
-  
-  if (hindiRegex.test(text)) {
-    return 'hi';
-  } else if (tamilRegex.test(text)) {
-    return 'ta';
-  } else {
-    return 'en';
-  }
+  return freeDetectLanguage(text);
 }
 
 /**
  * Get supported languages
  */
 function getSupportedLanguages() {
-  return [
-    { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'hi', name: 'Hindi', nativeName: 'हिंदी' },
-    { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்' }
-  ];
+  return freeGetSupportedLanguages();
 }
 
 /**
@@ -208,13 +177,10 @@ function getSupportedLanguages() {
  */
 async function translateBatch(texts, sourceLang, targetLang) {
   try {
-    const translations = await Promise.all(
-      texts.map(text => translateText(text, sourceLang, targetLang))
-    );
-    return translations;
+    return await freeTranslateBatch(texts, sourceLang, targetLang);
   } catch (error) {
     console.error('❌ Batch translation error:', error);
-    return texts; // Return original texts if translation fails
+    return texts.map(text => enhancedFallbackTranslation(text, sourceLang, targetLang));
   }
 }
 

@@ -374,6 +374,25 @@ async function addUserQuery(query, response, language = 'en') {
 }
 
 /**
+ * Add multiple schemes to database
+ */
+async function addSchemes(schemes) {
+  try {
+    // Add schemes to in-memory database
+    schemesDatabase.push(...schemes);
+    
+    // Save to file
+    await saveSchemesToFile();
+    
+    console.log(`✅ Added ${schemes.length} schemes to database`);
+    return schemes;
+  } catch (error) {
+    console.error('❌ Error adding schemes:', error);
+    throw error;
+  }
+}
+
+/**
  * Get user queries
  */
 function getUserQueries(limit = 50) {
@@ -389,5 +408,7 @@ module.exports = {
   searchSchemes,
   getSchemesByCategory,
   addUserQuery,
-  getUserQueries
+  getUserQueries,
+  addSchemes,
+  saveSchemesToFile
 };
