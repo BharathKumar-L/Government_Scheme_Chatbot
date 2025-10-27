@@ -1,4 +1,8 @@
-const { pipeline } = require('@xenova/transformers');
+let pipeline;
+(async () => {
+    const transformers = await import('@xenova/transformers');
+    pipeline = transformers.pipeline;
+})();
 
 class HuggingFaceLLMService {
   constructor() {
