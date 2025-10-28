@@ -3,7 +3,6 @@ import { X, Save } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card } from './ui/card'
-import { Select } from './ui/select'
 
 function AdminSchemeForm({ scheme, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -20,6 +19,7 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [docError, setDocError] = useState('')
 
   useEffect(() => {
     if (scheme) {
@@ -70,12 +70,20 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setDocError('')
     try {
       // Clean up empty array items
       const cleanedData = {
         ...formData,
         documents: formData.documents.filter(item => item.trim()),
         tags: formData.tags.filter(tag => tag.trim())
+      }
+
+      // Validate required documents
+      if (cleanedData.documents.length === 0) {
+        setDocError('Please add at least one required document.');
+        setIsLoading(false);
+        return;
       }
 
       await onSubmit(cleanedData)
@@ -146,15 +154,16 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Level *
                   </label>
-                  <Select
+                  <select
                     value={formData.level}
                     onChange={(e) => handleInputChange('level', e.target.value)}
                     required
+                    className="w-full p-2 border rounded-md"
                   >
                     <option value="Central">Central</option>
                     <option value="State">State</option>
                     <option value="Local">Local</option>
-                  </Select>
+                  </select>
                 </div>
               </div>
             </div>
@@ -216,36 +225,45 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
               </div>
             </div>
 
-            {/* Documents */}
+            {/* Documents
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Required Documents</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Required Documents <span className="text-red-500">*</span></h3>
               
-              {formData.documents.map((doc, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={doc}
-                    onChange={(e) => handleArrayInputChange('documents', index, e.target.value)}
-                    placeholder="Enter required document"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeArrayItem('documents', index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => addArrayItem('documents')}
-              >
-                Add Document
-              </Button>
-            </div>
+              <div className="space-y-2">
+                {formData.documents.length === 0 && (
+                  <p className="text-sm text-red-500">Please add at least one required document.</p>
+                )}
+                {formData.documents.map((doc, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      value={doc}
+                      onChange={(e) => handleArrayInputChange('documents', index, e.target.value)}
+                      placeholder={`Document ${index + 1}`}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeArrayItem('documents', index)}
+                      aria-label="Remove document"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => addArrayItem('documents')}
+                  className="mt-2"
+                >
+                  Add Document
+                </Button>
+                {docError && (
+                  <p className="text-sm text-red-500">{docError}</p>
+                )}
+              </div>
+            </div> */}
 
             {/* Tags */}
             <div className="space-y-4">
