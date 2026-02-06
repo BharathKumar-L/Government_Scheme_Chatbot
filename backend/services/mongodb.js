@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 // MongoDB connection configuration
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ruralconnect';
@@ -9,9 +10,11 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ruralc
 async function connectToMongoDB() {
   try {
     if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not defined');
+      console.warn('⚠️ MONGODB_URI not found in environment variables. Using local MongoDB.');
     }
 
+    const isAtlas = typeof MONGODB_URI === 'string' && MONGODB_URI.startsWith('mongodb+srv://');
+    
     const options = {
       maxPoolSize: 10, // Maintain up to 10 socket connections
       serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds
@@ -19,11 +22,16 @@ async function connectToMongoDB() {
       connectTimeoutMS: 30000, // Give up initial connection after 30 seconds
       retryWrites: true,
       w: 'majority',
-      tls: true, // Required for Atlas
-      tlsAllowInvalidCertificates: false
+      // Enable TLS only for Atlas connections. Local MongoDB typically does not use TLS.
+      tls: isAtlas,
+      tlsAllowInvalidCertificates: isAtlas ? false : undefined
     };
 
+    // Mask credentials when logging
+    const maskedUri = (MONGODB_URI || '').replace(/(mongodb\+srv:\/\/)([^:]+):([^@]+)@/, '$1***:***@');
     console.log('Attempting to connect to MongoDB...');
+    console.log('Using MongoDB URI:', maskedUri || '<none>');
+
     await mongoose.connect(MONGODB_URI, options);
     
     console.log('✅ Connected to MongoDB successfully');
@@ -44,7 +52,14 @@ async function connectToMongoDB() {
 
     return mongoose.connection;
   } catch (error) {
-    console.error('❌ Failed to connect to MongoDB:', error);
+    if (error.name === 'MongoServerSelectionError') {
+      console.error('❌ Could not connect to MongoDB server. If using Atlas, please check:');
+      console.error('   1. Your network connection');
+      console.error('   2. IP whitelist in Atlas');
+      console.error('   3. Username and password in connection string');
+      console.error('   4. Database name in connection string');
+    }
+    console.error('❌ Failed to connect to MongoDB:', error.message);
     throw error;
   }
 }

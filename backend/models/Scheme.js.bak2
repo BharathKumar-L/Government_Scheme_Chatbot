@@ -6,7 +6,7 @@ const schemeSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Scheme name is required'],
     trim: true,
-    unique: false
+    unique: true // Ensure scheme names are unique
   },
 
   details: {
@@ -83,26 +83,7 @@ const schemeSchema = new mongoose.Schema({
   timestamps: true // This will handle createdAt and updatedAt automatically
 });
 
-// Define all indexes with explicit names
-schemeSchema.index(
-  { name: 1 },
-  { 
-    unique: true,
-    name: 'unique_scheme_name_idx'
-  }
-);
-
-schemeSchema.index(
-  { level: 1 },
-  { name: 'scheme_level_idx' }
-);
-
-schemeSchema.index(
-  { category: 1 },
-  { name: 'scheme_category_idx' }
-);
-
-// Text search index with explicit name and weights
+// Create compound text search index
 schemeSchema.index(
   { 
     name: 'text',
@@ -112,7 +93,7 @@ schemeSchema.index(
     eligibility: 'text'
   },
   {
-    name: 'scheme_text_search_idx',
+    name: 'scheme_text_search',
     weights: {
       name: 10,
       category: 5,
@@ -120,6 +101,15 @@ schemeSchema.index(
       benefits: 2,
       eligibility: 2
     }
+  }
+);
+
+// Explicitly name the unique name index to avoid conflicts
+schemeSchema.index(
+  { name: 1 },
+  { 
+    unique: true,
+    name: 'unique_scheme_name'
   }
 );
 

@@ -11,9 +11,47 @@ async function initializeMongoDBDatabase() {
       throw new Error('MongoDB not connected');
     }
 
-    // Create indexes if they don't exist
-    await Scheme.createIndexes();
-    await Upload.createIndexes();
+    // Create indexes if they don't exist. Handle index conflicts gracefully
+    try {
+      // First try to drop any conflicting indexes
+      try {
+        const indexInfo = await Scheme.collection.indexInformation();
+        for (const [indexName, index] of Object.entries(indexInfo)) {
+          // Skip _id_ index
+          if (indexName === '_id_') continue;
+          
+          // Drop problematic indexes
+          if (indexName.startsWith('name_') || indexName === 'text_search') {
+            await Scheme.collection.dropIndex(indexName);
+            console.log(`🔄 Dropped existing index: ${indexName}`);
+          }
+        }
+      } catch (dropError) {
+        console.warn('⚠️ Error checking/dropping indexes:', dropError.message);
+      }
+
+      // Now create the new indexes
+      await Scheme.createIndexes();
+      console.log('✅ Created Scheme indexes successfully');
+    } catch (indexError) {
+      // Handle both IndexOptionsConflict (85) and IndexKeySpecsConflict (86)
+      if (indexError.code === 85 || indexError.code === 86) {
+        console.warn('⚠️ Using existing indexes for Scheme collection:', indexError.message);
+      } else {
+        throw indexError;
+      }
+    }
+
+    try {
+      await Upload.createIndexes();
+      console.log('✅ Created Upload indexes successfully');
+    } catch (indexError) {
+      if (indexError.code === 85 || indexError.code === 86) {
+        console.warn('⚠️ Using existing indexes for Upload collection:', indexError.message);
+      } else {
+        throw indexError;
+      }
+    }
 
     console.log('✅ MongoDB database initialized');
     return true;
@@ -109,9 +147,12 @@ async function addSchemes(schemesData) {
       errors: []
     };
 
+    const requiredFields = ['name', 'details', 'benefits', 'eligibility', 'application', 'level', 'category'];
+
     for (const schemeData of schemesData) {
       try {
-        if (!schemeData.name) {
+        // Quick name check
+        if (!schemeData.name || String(schemeData.name).trim() === '') {
           results.skipped++;
           results.errors.push('Scheme missing required field: name');
           continue;
@@ -119,18 +160,53 @@ async function addSchemes(schemesData) {
 
         // Check if scheme exists
         const existingScheme = await Scheme.findOne({ name: schemeData.name });
-        
+
+        // If updating an existing scheme, prefer existing values for required fields
+        // so that partial CSV rows won't overwrite required data with empty values.
+        const merged = existingScheme ? { ...existingScheme.toObject(), ...schemeData } : { ...schemeData };
+
+        // Validate required fields (non-empty after trimming)
+        const missing = requiredFields.filter(f => {
+          const val = merged[f];
+          return val === undefined || val === null || (typeof val === 'string' && val.trim() === '');
+        });
+
+        if (missing.length > 0) {
+          results.skipped++;
+          results.errors.push(`Scheme '${schemeData.name || 'unknown'}' missing required fields: ${missing.join(', ')}`);
+          continue;
+        }
+
         // Prepare scheme data with required fields
+        const timestamp = Date.now();
+        
+        // Generate a clean, valid ID
+        const generateId = (name) => {
+          const cleanName = String(name)
+            .toLowerCase()
+            // Remove quotes and special characters
+            .replace(/["""''`]/g, '')
+            // Replace any non-alphanumeric chars with hyphens
+            .replace(/[^a-z0-9]+/g, '-')
+            // Remove leading/trailing hyphens
+            .replace(/^-+|-+$/g, '')
+            // Limit length
+            .slice(0, 50);
+            
+          return cleanName ? `${cleanName}-${timestamp}` : `scheme-${timestamp}`;
+        };
+        
         const schemeToSave = {
-          ...schemeData,
+          ...merged,
           lastUpdated: new Date(),
           isActive: true,
-          tags: schemeData.tags || [],
-          id: schemeData.id || `${schemeData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
+          tags: merged.tags || schemeData.tags || [],
+          // Ensure ID is never null by using the existing ID or generating a new one
+          id: (merged.id || schemeData.id || generateId(schemeData.name))
         };
 
         if (existingScheme) {
-          // Update existing scheme
+          // Update existing scheme with validators
           await Scheme.findOneAndUpdate(
             { name: schemeData.name },
             schemeToSave,

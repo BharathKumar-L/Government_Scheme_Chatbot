@@ -3,7 +3,7 @@ import { X, Save } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card } from './ui/card'
-import { Select } from './ui/select'
+// Using native radio inputs for Level selection instead of a Select component
 
 function AdminSchemeForm({ scheme, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -146,15 +146,26 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Level *
                   </label>
-                  <Select
-                    value={formData.level}
-                    onChange={(e) => handleInputChange('level', e.target.value)}
-                    required
+                  <div
+                    role="radiogroup"
+                    aria-label="Scheme level"
+                    className="flex gap-4 mt-2"
                   >
-                    <option value="Central">Central</option>
-                    <option value="State">State</option>
-                    <option value="Local">Local</option>
-                  </Select>
+                    {['Central', 'State', 'Local'].map((opt) => (
+                      <label key={opt} className="inline-flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name="level"
+                          value={opt}
+                          checked={formData.level === opt}
+                          onChange={(e) => handleInputChange('level', e.target.value)}
+                          className="form-radio h-4 w-4 text-indigo-600"
+                          required
+                        />
+                        <span className="text-sm text-gray-700">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

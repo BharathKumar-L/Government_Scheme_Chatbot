@@ -18,10 +18,11 @@ api.interceptors.request.use(
     const token = localStorage.getItem('auth-token')
     const adminToken = localStorage.getItem('admin-session')
     
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    } else if (adminToken) {
+    // For admin endpoints, always try admin token first
+    if (config.url.includes('/admin') && adminToken) {
       config.headers.Authorization = `Bearer ${adminToken}`
+    } else if (token) {
+      config.headers.Authorization = `Bearer ${token}`
     }
     
     return config

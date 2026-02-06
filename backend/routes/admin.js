@@ -384,28 +384,66 @@ async function saveDatasetToDatabase(processedData, filename, fileSize, fileType
 
     // Convert CSV/JSON data to scheme format
     const schemes = processedData.map((item, index) => {
-      // Generate unique ID
-      const id = item.id || `${item.name?.toLowerCase().replace(/\s+/g, '-') || 'scheme'}-${Date.now()}-${index}`;
+      // First determine the name since we need it for ID generation
+      const schemeName = item.name || item.scheme_name || item.title || item.scheme_title || `Untitled-Scheme-${index}`;
       
-      // Map common field names
+      // Generate deterministic unique ID based on name and timestamp
+      const timestamp = Date.now() + index; // Add index to ensure uniqueness within batch
+      
+      // Clean up the scheme name for ID generation
+      const cleanName = schemeName
+        .toLowerCase()
+        // Replace quotes and special characters
+        .replace(/["""''`]/g, '')
+        // Replace any non-alphanumeric chars with hyphens
+        .replace(/[^a-z0-9]+/g, '-')
+        // Remove leading/trailing hyphens
+        .replace(/^-+|-+$/g, '')
+        // Limit length
+        .slice(0, 50);
+        
+      // Ensure we have a valid ID
+      const id = item.id || (cleanName ? `${cleanName}-${timestamp}` : `scheme-${timestamp}`);
+      
+      // Map common field names with expanded aliases
       const scheme = {
         id,
-        name: item.name || item.scheme_name || item.title || 'Untitled Scheme',
+        name: schemeName,
         slug: item.slug || id,
-        details: item.details || item.description || item.objective || item.purpose || '',
-        category: item.category || item.scheme_category || item.type || 'General',
-        level: item.level || 'Central', // Default to Central if not specified
-        eligibility: item.eligibility || '',
-        application: item.application || item.application_process || item.procedure || '',
-        documents: Array.isArray(item.documents) ? item.documents : 
-                  (item.documents ? [item.documents] : []),
-        applicationProcedure: Array.isArray(item.applicationProcedure) ? item.applicationProcedure : 
-                             (item.procedure || item.application_process ? [item.procedure || item.application_process] : []),
-        applicationProcedureHindi: Array.isArray(item.applicationProcedureHindi) ? item.applicationProcedureHindi : 
-                                  (item.procedure_hindi || item.application_process_hindi ? [item.procedure_hindi || item.application_process_hindi] : []),
-        applicationProcedureTamil: Array.isArray(item.applicationProcedureTamil) ? item.applicationProcedureTamil : 
-                                  (item.procedure_tamil || item.application_process_tamil ? [item.procedure_tamil || item.application_process_tamil] : []),
-        benefits: item.benefits || item.benefit_amount || item.amount || '',
+        details: item.details || item.description || item.about || item.objective || item.purpose || item.overview || '',
+        category: item.category || item.scheme_category || item.sector || item.type || item.domain || 'General',
+        level: (function() {
+          const levelValue = (item.level || item.scheme_level || item.jurisdiction || '').trim();
+          // Map common variations to valid enum values
+          const levelMap = {
+            'central': 'Central',
+            'state': 'State',
+            'local': 'Local',
+            'central government': 'Central',
+            'state government': 'State',
+            'local government': 'Local',
+            'union': 'Central',
+            'national': 'Central'
+          };
+          return levelMap[levelValue.toLowerCase()] || 'Central'; // Default to Central if no valid mapping
+        })(),
+        eligibility: item.eligibility || item.eligibility_criteria || item.who_can_apply || item.qualification || '',
+        application: item.application || item.application_process || item.how_to_apply || item.procedure || item.apply || '',
+        documents: Array.isArray(item.documents) ? item.documents :
+                  item.required_documents ? (Array.isArray(item.required_documents) ? item.required_documents : [item.required_documents]) :
+                  item.documents ? [item.documents] : [],
+        benefits: item.benefits || item.benefit_amount || item.assistance || item.amount || item.scheme_benefits || '',
+
+        // Keep multilingual fields but don't fail validation if missing
+        applicationProcedure: Array.isArray(item.applicationProcedure) ? item.applicationProcedure :
+                            (item.procedure || item.application_process || item.how_to_apply ? 
+                             [item.procedure || item.application_process || item.how_to_apply] : []),
+        applicationProcedureHindi: Array.isArray(item.applicationProcedureHindi) ? item.applicationProcedureHindi :
+                                 (item.procedure_hindi || item.application_process_hindi ? 
+                                  [item.procedure_hindi || item.application_process_hindi] : []),
+        applicationProcedureTamil: Array.isArray(item.applicationProcedureTamil) ? item.applicationProcedureTamil :
+                                 (item.procedure_tamil || item.application_process_tamil ?
+                                  [item.procedure_tamil || item.application_process_tamil] : []),
         benefitsHindi: item.benefitsHindi || item.benefit_amount_hindi || item.amount_hindi || '',
         lastUpdated: new Date(),
         isActive: true,
