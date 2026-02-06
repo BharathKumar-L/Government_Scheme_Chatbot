@@ -79,14 +79,33 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
         tags: formData.tags.filter(tag => tag.trim())
       }
 
-      // Validate required documents
-      if (cleanedData.documents.length === 0) {
-        setDocError('Please add at least one required document.');
-        setIsLoading(false);
-        return;
+      // Auto-generate slug from name if empty
+      if (!cleanedData.slug || !cleanedData.slug.trim()) {
+        cleanedData.slug = cleanedData.name
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '') // remove non-word chars
+          .trim()
+          .replace(/\s+/g, '-')
       }
 
-      await onSubmit(cleanedData)
+      // NOTE: removed "documents must exist" blocking validation because
+      // the Documents UI is commented out. If you re-enable Documents UI,
+      // re-introduce validation here.
+
+      // Call parent-supplied onSubmit (expected to save to backend).
+      // Capture returned scheme if provided.
+      const savedScheme = await onSubmit(cleanedData)
+
+      // Broadcast an event so parent/listeners can update UI without
+      // requiring further wiring changes.
+      try {
+        window.dispatchEvent(new CustomEvent('scheme:added', {
+          detail: savedScheme || cleanedData
+        }))
+      } catch (err) {
+        // ignore event dispatch errors in older browsers
+      }
+
       onClose()
     } catch (error) {
       console.error('Form submission error:', error)

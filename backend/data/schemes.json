@@ -132,22 +132,20 @@
     ]
   },
   {
-    "id": "scholarship-1761544274421",
-    "name": "scholarship",
-    "slug": "",
-    "details": "scholarship",
-    "category": "Education",
+    "id": "elcot-1770373320948",
+    "name": "Elcot",
+    "slug": "elcot",
+    "details": "Laptop scheme ",
+    "category": "Education ",
     "level": "Central",
-    "benefits": "scholarship",
-    "eligibility": "scholarship",
-    "application": "scholarship",
-    "documents": [
-      "scholarship"
-    ],
+    "benefits": "students get free laptops ",
+    "eligibility": "UG - PG ",
+    "application": "1.fill up the form 2. apply",
+    "documents": [],
     "tags": [
-      "scholarship"
+      "education"
     ],
-    "lastUpdated": "2025-10-27T05:51:14.422Z",
+    "lastUpdated": "2026-02-06T10:22:00.950Z",
     "isActive": true
   }
 ]
