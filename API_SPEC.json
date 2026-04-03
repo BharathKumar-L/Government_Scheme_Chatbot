@@ -1,0 +1,337 @@
+{
+  "info": {
+    "title": "RuralConnect RAG Chatbot API",
+    "version": "1.0.0",
+    "description": "Multilingual RAG chatbot API for discovering Indian government welfare schemes",
+    "contact": {
+      "email": "support@ruralconnect.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/chat": {
+      "post": {
+        "summary": "Send a message to the chatbot",
+        "tags": ["Chat"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "User's query or message",
+                    "minLength": 1
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": ["en", "hi", "ta"],
+                    "default": "en",
+                    "description": "Language code"
+                  },
+                  "isVoiceInput": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether input was from voice"
+                  },
+                  "sessionId": {
+                    "type": "string",
+                    "description": "Optional existing session ID"
+                  }
+                },
+                "required": ["message"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sessionId": { "type": "string" },
+                        "response": { "type": "string" },
+                        "language": { "type": "string" },
+                        "relevantSchemes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" },
+                              "relevanceScore": { "type": "number" }
+                            }
+                          }
+                        },
+                        "confidence": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/chat/history/{sessionId}": {
+      "get": {
+        "summary": "Get chat history for a session",
+        "tags": ["Chat"],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Clear chat history",
+        "tags": ["Chat"],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ]
+      }
+    },
+    "/schemes": {
+      "get": {
+        "summary": "List all schemes",
+        "tags": ["Schemes"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10 }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["en", "hi", "ta"], "default": "en" }
+          }
+        ]
+      }
+    },
+    "/schemes/{id}": {
+      "get": {
+        "summary": "Get scheme details",
+        "tags": ["Schemes"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["en", "hi", "ta"], "default": "en" }
+          }
+        ]
+      }
+    },
+    "/schemes/categories": {
+      "get": {
+        "summary": "Get all scheme categories",
+        "tags": ["Schemes"]
+      }
+    },
+    "/schemes/search": {
+      "get": {
+        "summary": "Search schemes using semantic search",
+        "tags": ["Schemes"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Search query"
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["en", "hi", "ta"], "default": "en" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10 }
+          }
+        ]
+      }
+    },
+    "/admin/login": {
+      "post": {
+        "summary": "Admin login",
+        "tags": ["Admin"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sessionId": { "type": "string" },
+                        "expiresIn": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/schemes": {
+      "post": {
+        "summary": "Create a new scheme",
+        "tags": ["Admin"],
+        "security": [{ "AdminSession": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "details": { "type": "string" },
+                  "benefits": { "type": "string" },
+                  "eligibility": { "type": "string" },
+                  "applicationProcedure": { "type": "string" },
+                  "documentsRequired": { "type": "string" },
+                  "category": { "type": "string" },
+                  "level": { "type": "string", "enum": ["central", "state", "district"] }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/schemes/{id}": {
+      "put": {
+        "summary": "Update a scheme",
+        "tags": ["Admin"],
+        "security": [{ "AdminSession": [] }]
+      },
+      "delete": {
+        "summary": "Delete a scheme",
+        "tags": ["Admin"],
+        "security": [{ "AdminSession": [] }]
+      }
+    },
+    "/admin/upload-dataset": {
+      "post": {
+        "summary": "Upload CSV dataset",
+        "tags": ["Admin"],
+        "security": [{ "AdminSession": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "summary": "Get admin statistics",
+        "tags": ["Admin"],
+        "security": [{ "AdminSession": [] }]
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Server is healthy"
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "summary": "System statistics",
+        "tags": ["System"]
+      }
+    }
+  },
+  "securitySchemes": {
+    "AdminSession": {
+      "type": "apiKey",
+      "name": "x-admin-session",
+      "in": "header"
+    }
+  }
+}

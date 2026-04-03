@@ -1,6 +1,16 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
+const API_ROOT_URL = API_BASE_URL.replace(/\/api\/?$/, '')
+
+export const getSupportedLanguage = (languageCode = 'en') => {
+  const normalized = String(languageCode).toLowerCase()
+
+  if (normalized.startsWith('hi')) return 'hi'
+  if (normalized.startsWith('ta')) return 'ta'
+
+  return 'en'
+}
 
 // Create axios instance
 const api = axios.create({
@@ -20,7 +30,7 @@ api.interceptors.request.use(
     
     // For admin endpoints, always try admin token first
     if (config.url.includes('/admin') && adminToken) {
-      config.headers.Authorization = `Bearer ${adminToken}`
+      config.headers['x-admin-session'] = adminToken
     } else if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -61,8 +71,8 @@ export const chatAPI = {
   },
   
   getHistory: async (sessionId, limit = 20) => {
-    return await api.get('/chat/history', {
-      params: { sessionId, limit }
+    return await api.get(`/chat/history/${sessionId}`, {
+      params: { limit }
     })
   },
   
@@ -76,29 +86,25 @@ export const schemesAPI = {
   getAllSchemes: async (params = {}) => {
     return await api.get('/schemes', { params })
   },
-  
+
   getSchemeById: async (id, language = 'en') => {
     return await api.get(`/schemes/${id}`, {
       params: { language }
     })
   },
-  
+
   getCategories: async (language = 'en') => {
-    return await api.get('/schemes/categories/list', {
+    return await api.get('/schemes/categories', {
       params: { language }
     })
   },
-  
-  getSchemesByCategory: async (category, params = {}) => {
-    return await api.get(`/schemes/categories/${category}`, { params })
-  },
-  
+
   searchSchemes: async (query, params = {}) => {
-    return await api.get('/schemes/search/suggestions', {
+    return await api.get('/schemes/search', {
       params: { q: query, ...params }
     })
   },
-  
+
   getStats: async () => {
     return await api.get('/schemes/stats')
   }
@@ -136,45 +142,33 @@ export const adminAPI = {
   login: async (credentials) => {
     return await api.post('/admin/login', credentials)
   },
-  
+
   logout: async () => {
     return await api.post('/admin/logout')
   },
-  
-  verifySession: async () => {
-    return await api.get('/admin/verify')
-  },
-  
-  getSchemes: async () => {
-    return await api.get('/admin/schemes')
-  },
-  
-  getSchemeById: async (id) => {
-    return await api.get(`/admin/schemes/${id}`)
-  },
-  
+
   addScheme: async (schemeData) => {
     return await api.post('/admin/schemes', schemeData)
   },
-  
+
   updateScheme: async (id, schemeData) => {
     return await api.put(`/admin/schemes/${id}`, schemeData)
   },
-  
+
   deleteScheme: async (id) => {
     return await api.delete(`/admin/schemes/${id}`)
   },
-  
+
   uploadDataset: async (file) => {
     const formData = new FormData()
-    formData.append('dataset', file)
+    formData.append('file', file)
     return await api.post('/admin/upload-dataset', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
   },
-  
+
   getStats: async () => {
     return await api.get('/admin/stats')
   }
@@ -183,7 +177,8 @@ export const adminAPI = {
 // Health check
 export const healthAPI = {
   check: async () => {
-    return await api.get('/health')
+    const response = await axios.get(`${API_ROOT_URL}/health`)
+    return response.data
   }
 }
 

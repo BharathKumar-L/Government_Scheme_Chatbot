@@ -9,9 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      strategies: 'injectManifest',
-      srcDir: 'src',
-      filename: 'sw.js',
+      strategies: 'generateSW',
       manifest: {
         name: 'RuralConnect - Government Schemes Chatbot',
         short_name: 'RuralConnect',
@@ -61,7 +59,10 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    host: true
+    host: true,
+    headers: {
+      'Service-Worker-Allowed': '/'
+    }
   },
   build: {
     outDir: 'dist',

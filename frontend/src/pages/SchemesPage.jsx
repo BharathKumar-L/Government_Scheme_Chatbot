@@ -32,10 +32,11 @@ const SchemesPage = () => {
     try {
       setIsLoading(true)
       const response = await schemesAPI.getAllSchemes()
-      setSchemes(response.data)
+      setSchemes(response.data.schemes)
     } catch (error) {
       console.error('Failed to load schemes:', error)
       toast.error('Failed to load schemes. Please try again.')
+      setSchemes([])
     } finally {
       setIsLoading(false)
     }
@@ -44,9 +45,10 @@ const SchemesPage = () => {
   const loadCategories = async () => {
     try {
       const response = await schemesAPI.getCategories()
-      setCategories(response.data)
+      setCategories(response.data.categories)
     } catch (error) {
       console.error('Failed to load categories:', error)
+      setCategories([])
     }
   }
 
@@ -148,8 +150,8 @@ const SchemesPage = () => {
 
       {/* Schemes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSchemes.map((scheme) => (
-          <Card key={scheme.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+        {filteredSchemes.map((scheme, index) => (
+          <Card key={scheme._id || scheme.id || `${scheme.name}-${index}`} className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
