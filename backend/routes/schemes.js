@@ -1,300 +1,155 @@
 const express = require('express');
-const Joi = require('joi');
-const { 
-  getAllSchemes, 
-  getSchemeById, 
-  searchSchemes, 
-  getSchemesByCategory 
-} = require('../services/database');
+const Scheme = require('../models/Scheme');
+const { getRagPipeline } = require('../services/ragPipeline');
 
 const router = express.Router();
 
-// Validation schema for scheme search
-const searchSchema = Joi.object({
-  query: Joi.string().min(1).max(100).optional(),
-  category: Joi.string().optional(),
-  language: Joi.string().valid('en', 'hi', 'ta').default('en'),
-  limit: Joi.number().integer().min(1).max(50).default(20),
-  offset: Joi.number().integer().min(0).default(0)
-});
-
-/**
- * GET /api/schemes
- * Get all schemes with optional filtering
- */
-router.get('/', async (req, res) => {
+// GET /api/schemes - List all schemes with pagination
+router.get('/', async (req, res, next) => {
   try {
-    // Validate query parameters
-    const { error, value } = searchSchema.validate(req.query);
-    if (error) {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.details[0].message
-      });
+    const { page = 1, limit = 10, category, language = 'en' } = req.query;
+
+    let query = { isActive: true };
+    if (category) {
+      query.category = category;
     }
 
-    const { query, category, language, limit, offset } = value;
-    
-    let schemes = getAllSchemes();
-    
-    // Apply filters
-    if (query) {
-      schemes = searchSchemes(query, language);
+    const skip = (page - 1) * limit;
+
+    const schemes = await Scheme.find(query)
+      .skip(skip)
+      .limit(Number(limit))
+      .select('-embedding')
+      .exec();
+
+    const total = await Scheme.countDocuments(query);
+
+    // Translate if needed
+    if (language !== 'en') {
+      const { translateContent } = require('../services/translation');
+      for (let i = 0; i < schemes.length; i++) {
+        schemes[i] = await translateContent(schemes[i], language);
+      }
     }
-    
-    if (category) {
-      schemes = getSchemesByCategory(category, language);
-    }
-    
-    // Apply pagination
-    const total = schemes.length;
-    const paginatedSchemes = schemes.slice(offset, offset + limit);
-    
-    // Format response based on language
-    const formattedSchemes = paginatedSchemes.map(scheme => formatSchemeForLanguage(scheme, language));
-    
+
     res.json({
       success: true,
-      data: formattedSchemes,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total
-      },
-      language,
-      timestamp: new Date().toISOString()
+      data: {
+        schemes,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
     });
-    
   } catch (error) {
-    console.error('❌ Schemes list error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch schemes'
-    });
+    next(error);
   }
 });
 
-/**
- * GET /api/schemes/:id
- * Get specific scheme by ID
- */
-router.get('/:id', async (req, res) => {
+// GET /api/schemes/categories - Get all categories
+router.get('/categories', async (req, res, next) => {
+  try {
+    const categories = await Scheme.distinct('category', { isActive: true });
+
+    res.json({
+      success: true,
+      data: {
+        categories: categories.sort()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/schemes/search - Search schemes
+router.get('/search', async (req, res, next) => {
+  try {
+    const { q, language = 'en', limit = 10 } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query is required'
+      });
+    }
+
+    // Use RAG for semantic search
+    const ragPipeline = await getRagPipeline();
+    const results = await ragPipeline.searchSchemes(q, {
+      language,
+      topK: Number(limit)
+    });
+
+    res.json({
+      success: true,
+      data: {
+        results,
+        query: q
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/schemes/:id - Get scheme details
+router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const { language = 'en' } = req.query;
-    
-    const scheme = getSchemeById(id);
-    
+
+    let scheme = await Scheme.findById(id);
+
     if (!scheme) {
       return res.status(404).json({
         success: false,
-        error: 'Scheme not found',
-        message: language === 'hi' 
-          ? 'योजना नहीं मिली'
-          : language === 'ta'
-          ? 'திட்டம் கிடைக்கவில்லை'
-          : 'Scheme not found'
+        error: 'Scheme not found'
       });
     }
-    
-    const formattedScheme = formatSchemeForLanguage(scheme, language);
-    
-    res.json({
-      success: true,
-      data: formattedScheme,
-      language,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('❌ Scheme details error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch scheme details'
-    });
-  }
-});
 
-/**
- * GET /api/schemes/categories/list
- * Get list of all categories
- */
-router.get('/categories/list', async (req, res) => {
-  try {
-    const { language = 'en' } = req.query;
-    const schemes = getAllSchemes();
-    
-    // Extract unique categories
-    const categories = [...new Set(schemes.map(scheme => {
-      const categoryField = language === 'hi' ? 'categoryHindi' : language === 'ta' ? 'categoryTamil' : 'category';
-      return scheme[categoryField] || scheme.category;
-    }))];
-    
-    res.json({
-      success: true,
-      data: categories.sort(),
-      language,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('❌ Categories list error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch categories'
-    });
-  }
-});
+    // Update view count
+    scheme.viewCount = (scheme.viewCount || 0) + 1;
+    await scheme.save();
 
-/**
- * GET /api/schemes/categories/:category
- * Get schemes by specific category
- */
-router.get('/categories/:category', async (req, res) => {
-  try {
-    const { category } = req.params;
-    const { language = 'en', limit = 20, offset = 0 } = req.query;
-    
-    const schemes = getSchemesByCategory(category, language);
-    
-    // Apply pagination
-    const total = schemes.length;
-    const paginatedSchemes = schemes.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
-    
-    const formattedSchemes = paginatedSchemes.map(scheme => formatSchemeForLanguage(scheme, language));
-    
-    res.json({
-      success: true,
-      data: formattedSchemes,
-      category,
-      pagination: {
-        total,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        hasMore: parseInt(offset) + parseInt(limit) < total
-      },
-      language,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('❌ Category schemes error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch schemes by category'
-    });
-  }
-});
-
-/**
- * GET /api/schemes/search/suggestions
- * Get search suggestions based on partial query
- */
-router.get('/search/suggestions', async (req, res) => {
-  try {
-    const { q, language = 'en', limit = 10 } = req.query;
-    
-    if (!q || q.length < 2) {
-      return res.json({
-        success: true,
-        data: [],
-        message: 'Query too short'
-      });
+    // Translate if needed
+    if (language !== 'en') {
+      const { translateContent } = require('../services/translation');
+      scheme = await translateContent(scheme.toObject(), language);
     }
-    
-    const schemes = searchSchemes(q, language);
-    const suggestions = schemes.slice(0, parseInt(limit)).map(scheme => {
-      const nameField = language === 'hi' ? 'nameHindi' : language === 'ta' ? 'nameTamil' : 'name';
-      return {
-        id: scheme.id,
-        name: scheme[nameField] || scheme.name,
-        category: scheme[language === 'hi' ? 'categoryHindi' : language === 'ta' ? 'categoryTamil' : 'category'] || scheme.category
-      };
-    });
-    
+
     res.json({
       success: true,
-      data: suggestions,
-      query: q,
-      language,
-      timestamp: new Date().toISOString()
+      data: { scheme }
     });
-    
   } catch (error) {
-    console.error('❌ Search suggestions error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch search suggestions'
-    });
+    next(error);
   }
 });
 
-/**
- * Format scheme data for specific language
- */
-function formatSchemeForLanguage(scheme, language) {
-  const nameField = language === 'hi' ? 'nameHindi' : language === 'ta' ? 'nameTamil' : 'name';
-  const objectiveField = language === 'hi' ? 'objectiveHindi' : language === 'ta' ? 'objectiveTamil' : 'objective';
-  const eligibilityField = language === 'hi' ? 'eligibilityHindi' : language === 'ta' ? 'eligibilityTamil' : 'eligibility';
-  const documentsField = language === 'hi' ? 'documentsRequiredHindi' : language === 'ta' ? 'documentsRequiredTamil' : 'documentsRequired';
-  const procedureField = language === 'hi' ? 'applicationProcedureHindi' : language === 'ta' ? 'applicationProcedureTamil' : 'applicationProcedure';
-  const benefitsField = language === 'hi' ? 'benefitsHindi' : language === 'ta' ? 'benefitsTamil' : 'benefits';
-  const deadlineField = language === 'hi' ? 'deadlineHindi' : language === 'ta' ? 'deadlineTamil' : 'deadline';
-  const contactField = language === 'hi' ? 'contactInfoHindi' : language === 'ta' ? 'contactInfoTamil' : 'contactInfo';
-  const categoryField = language === 'hi' ? 'categoryHindi' : language === 'ta' ? 'categoryTamil' : 'category';
-  
-  return {
-    id: scheme.id,
-    name: scheme[nameField] || scheme.name,
-    category: scheme[categoryField] || scheme.category,
-    objective: scheme[objectiveField] || scheme.objective,
-    eligibility: scheme[eligibilityField] || scheme.eligibility,
-    documentsRequired: scheme[documentsField] || scheme.documentsRequired,
-    applicationProcedure: scheme[procedureField] || scheme.applicationProcedure,
-    benefits: scheme[benefitsField] || scheme.benefits,
-    deadline: scheme[deadlineField] || scheme.deadline,
-    contactInfo: scheme[contactField] || scheme.contactInfo,
-    website: scheme.website,
-    lastUpdated: scheme.lastUpdated,
-    tags: scheme.tags
-  };
-}
-
-/**
- * GET /api/schemes/stats
- * Get statistics about schemes
- */
-router.get('/stats', async (req, res) => {
+// GET /api/schemes/stats/overview - Get schemes statistics
+router.get('/stats/overview', async (req, res, next) => {
   try {
-    const schemes = getAllSchemes();
-    
-    // Calculate statistics
-    const totalSchemes = schemes.length;
-    const categories = [...new Set(schemes.map(s => s.category))];
-    const categoryCounts = {};
-    
-    schemes.forEach(scheme => {
-      categoryCounts[scheme.category] = (categoryCounts[scheme.category] || 0) + 1;
-    });
-    
+    const totalSchemes = await Scheme.countDocuments({ isActive: true });
+    const totalCategories = await Scheme.distinct('category', { isActive: true });
+    const topSchemes = await Scheme.find({ isActive: true })
+      .sort({ viewCount: -1 })
+      .limit(5)
+      .select('name viewCount category');
+
     res.json({
       success: true,
       data: {
         totalSchemes,
-        totalCategories: categories.length,
-        categories: categoryCounts,
-        lastUpdated: new Date().toISOString()
-      },
-      timestamp: new Date().toISOString()
+        totalCategories: totalCategories.length,
+        topSchemes
+      }
     });
-    
   } catch (error) {
-    console.error('❌ Schemes stats error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch scheme statistics'
-    });
+    next(error);
   }
 });
 

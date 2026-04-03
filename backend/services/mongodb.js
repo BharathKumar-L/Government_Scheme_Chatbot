@@ -1,112 +1,50 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
 
-// MongoDB connection configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ruralconnect';
+let isConnected = false;
 
-/**
- * Connect to MongoDB
- */
-async function connectToMongoDB() {
+const connectMongoDB = async () => {
+  if (isConnected) {
+    console.log('MongoDB already connected');
+    return;
+  }
+
   try {
-    if (!process.env.MONGODB_URI) {
-      console.warn('⚠️ MONGODB_URI not found in environment variables. Using local MongoDB.');
-    }
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ruralconnect';
 
-    const isAtlas = typeof MONGODB_URI === 'string' && MONGODB_URI.startsWith('mongodb+srv://');
-    
-    const options = {
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      connectTimeoutMS: 30000, // Give up initial connection after 30 seconds
-      retryWrites: true,
-      w: 'majority',
-      // Enable TLS only for Atlas connections. Local MongoDB typically does not use TLS.
-      tls: isAtlas,
-      tlsAllowInvalidCertificates: isAtlas ? false : undefined
-    };
-
-    // Mask credentials when logging
-    const maskedUri = (MONGODB_URI || '').replace(/(mongodb\+srv:\/\/)([^:]+):([^@]+)@/, '$1***:***@');
-    console.log('Attempting to connect to MongoDB...');
-    console.log('Using MongoDB URI:', maskedUri || '<none>');
-
-    await mongoose.connect(MONGODB_URI, options);
-    
-    console.log('✅ Connected to MongoDB successfully');
-    console.log(`📊 Database: ${mongoose.connection.db.databaseName}`);
-    
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB connection error:', err);
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000
     });
 
-    mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️ MongoDB disconnected');
-    });
-
-    mongoose.connection.on('reconnected', () => {
-      console.log('🔄 MongoDB reconnected');
-    });
-
+    isConnected = true;
+    console.log('✓ MongoDB connected successfully');
     return mongoose.connection;
   } catch (error) {
-    if (error.name === 'MongoServerSelectionError') {
-      console.error('❌ Could not connect to MongoDB server. If using Atlas, please check:');
-      console.error('   1. Your network connection');
-      console.error('   2. IP whitelist in Atlas');
-      console.error('   3. Username and password in connection string');
-      console.error('   4. Database name in connection string');
-    }
-    console.error('❌ Failed to connect to MongoDB:', error.message);
-    throw error;
+    console.error('✗ MongoDB connection failed:', error.message);
+    isConnected = false;
+    return null;
   }
-}
+};
 
-/**
- * Disconnect from MongoDB
- */
-async function disconnectFromMongoDB() {
+const disconnectMongoDB = async () => {
   try {
     await mongoose.disconnect();
-    console.log('✅ Disconnected from MongoDB');
+    isConnected = false;
+    console.log('✓ MongoDB disconnected');
   } catch (error) {
-    console.error('❌ Error disconnecting from MongoDB:', error);
-    throw error;
+    console.error('✗ MongoDB disconnection failed:', error.message);
   }
-}
+};
 
-/**
- * Check if MongoDB is connected
- */
-function isConnected() {
-  return mongoose.connection.readyState === 1;
-}
+const getMongoDBConnection = () => {
+  return mongoose.connection;
+};
 
-/**
- * Get MongoDB connection status
- */
-function getConnectionStatus() {
-  const states = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting'
-  };
-  
-  return {
-    state: states[mongoose.connection.readyState],
-    host: mongoose.connection.host,
-    port: mongoose.connection.port,
-    name: mongoose.connection.name
-  };
-}
+const isMongoDBConnected = () => isConnected;
 
 module.exports = {
-  connectToMongoDB,
-  disconnectFromMongoDB,
-  isConnected,
-  getConnectionStatus,
-  mongoose
+  connectMongoDB,
+  disconnectMongoDB,
+  getMongoDBConnection,
+  isMongoDBConnected
 };

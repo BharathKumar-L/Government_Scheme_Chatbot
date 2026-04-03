@@ -38,8 +38,8 @@ function AdminStats({ stats, onClose }) {
                 <div className="flex items-center">
                   <Users className="w-8 h-8 text-green-600" />
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Queries</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalQueries}</p>
+                    <p className="text-sm font-medium text-gray-600">Total Views</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalViews ?? 0}</p>
                   </div>
                 </div>
               </Card>
@@ -49,7 +49,7 @@ function AdminStats({ stats, onClose }) {
                   <BarChart3 className="w-8 h-8 text-purple-600" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Categories</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.categories?.length || 0}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.categoriesCount ?? 0}</p>
                   </div>
                 </div>
               </Card>
@@ -58,55 +58,30 @@ function AdminStats({ stats, onClose }) {
                 <div className="flex items-center">
                   <TrendingUp className="w-8 h-8 text-orange-600" />
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Recent Activity</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.recentActivity?.length || 0}</p>
+                    <p className="text-sm font-medium text-gray-600">Active Schemes</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.activeSchemes ?? 0}</p>
                   </div>
                 </div>
               </Card>
             </div>
 
             {/* Categories */}
-            {stats.categories && stats.categories.length > 0 && (
+            {stats.categoriesCount > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {stats.categories.map((category, index) => (
-                    <div
-                      key={index}
-                      className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center"
-                    >
-                      <span className="text-sm font-medium text-blue-800">{category}</span>
-                    </div>
-                  ))}
-                </div>
+                <Card className="p-4">
+                  <p className="text-sm text-gray-700">Category breakdown details are not included in the current stats API response.</p>
+                </Card>
               </div>
             )}
 
             {/* Recent Activity */}
-            {stats.recentActivity && stats.recentActivity.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent User Queries</h3>
-                <div className="space-y-3">
-                  {stats.recentActivity.map((activity, index) => (
-                    <Card key={index} className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-900 font-medium">
-                            {activity.query}
-                          </p>
-                          <div className="flex items-center mt-2 space-x-4 text-xs text-gray-500">
-                            <span>Language: {activity.language}</span>
-                            <span>
-                              {new Date(activity.timestamp).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
+              <Card className="p-4">
+                <p className="text-sm text-gray-700">Recent activity details are not included in the current stats API response.</p>
+              </Card>
+            </div>
 
             {/* System Info */}
             <div>

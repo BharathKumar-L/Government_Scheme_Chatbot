@@ -5,6 +5,7 @@ import { Menu, X, Globe, MessageCircle, FileText, Info, Shield } from 'lucide-re
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { getSupportedLanguage } from '../services/api'
 
 const Header = () => {
   const { t, i18n } = useTranslation()
@@ -78,7 +79,7 @@ const Header = () => {
 
             {/* Language Selector */}
             <Select
-              value={i18n.language}
+              value={getSupportedLanguage(i18n.resolvedLanguage || i18n.language)}
               onValueChange={handleLanguageChange}
             >
               <SelectTrigger className="w-32">
@@ -86,7 +87,7 @@ const Header = () => {
                   <div className="flex items-center space-x-2">
                     <Globe className="h-4 w-4" />
                     <span className="hidden sm:inline">
-                      {languages.find(lang => lang.code === i18n.language)?.flag}
+                      {languages.find(lang => lang.code === getSupportedLanguage(i18n.resolvedLanguage || i18n.language))?.flag}
                     </span>
                   </div>
                 </SelectValue>

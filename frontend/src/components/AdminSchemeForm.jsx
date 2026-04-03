@@ -7,25 +7,29 @@ import { Card } from './ui/card'
 function AdminSchemeForm({ scheme, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     details: '',
     category: '',
-    level: 'Central',
+    level: 'central',
     benefits: '',
     eligibility: '',
-    application: '',
-    documents: [],
+    applicationProcedure: '',
+    documentsRequired: '',
     tags: []
   })
 
   const [isLoading, setIsLoading] = useState(false)
-  const [docError, setDocError] = useState('')
 
   useEffect(() => {
     if (scheme) {
       setFormData({
-        ...scheme,
-        documents: scheme.documents || [],
+        name: scheme.name || '',
+        details: scheme.details || '',
+        category: scheme.category || '',
+        level: scheme.level || 'central',
+        benefits: scheme.benefits || '',
+        eligibility: scheme.eligibility || '',
+        applicationProcedure: scheme.applicationProcedure || '',
+        documentsRequired: scheme.documentsRequired || '',
         tags: scheme.tags || []
       })
     }
@@ -35,27 +39,6 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
     setFormData(prev => ({
       ...prev,
       [field]: value
-    }))
-  }
-
-  const handleArrayInputChange = (field, index, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }))
-  }
-
-  const addArrayItem = (field) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], '']
-    }))
-  }
-
-  const removeArrayItem = (field, index) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
     }))
   }
 
@@ -70,34 +53,21 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-    setDocError('')
     try {
-      // Clean up empty array items
       const cleanedData = {
-        ...formData,
-        documents: formData.documents.filter(item => item.trim()),
+        name: formData.name,
+        details: formData.details,
+        category: formData.category,
+        level: formData.level,
+        benefits: formData.benefits,
+        eligibility: formData.eligibility,
+        applicationProcedure: formData.applicationProcedure,
+        documentsRequired: formData.documentsRequired,
         tags: formData.tags.filter(tag => tag.trim())
       }
 
-      // Auto-generate slug from name if empty
-      if (!cleanedData.slug || !cleanedData.slug.trim()) {
-        cleanedData.slug = cleanedData.name
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '') // remove non-word chars
-          .trim()
-          .replace(/\s+/g, '-')
-      }
-
-      // NOTE: removed "documents must exist" blocking validation because
-      // the Documents UI is commented out. If you re-enable Documents UI,
-      // re-introduce validation here.
-
-      // Call parent-supplied onSubmit (expected to save to backend).
-      // Capture returned scheme if provided.
       const savedScheme = await onSubmit(cleanedData)
 
-      // Broadcast an event so parent/listeners can update UI without
-      // requiring further wiring changes.
       try {
         window.dispatchEvent(new CustomEvent('scheme:added', {
           detail: savedScheme || cleanedData
@@ -148,17 +118,6 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Slug
-                  </label>
-                  <Input
-                    value={formData.slug}
-                    onChange={(e) => handleInputChange('slug', e.target.value)}
-                    placeholder="scheme-name-slug (auto-generated if empty)"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
                   </label>
                   <Input
@@ -173,15 +132,16 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Level *
                   </label>
-                  <Select
+                  <select
+                    className="w-full h-10 px-3 border rounded-md bg-white"
                     value={formData.level}
                     onChange={(e) => handleInputChange('level', e.target.value)}
                     required
                   >
-                    <option value="Central">Central</option>
-                    <option value="State">State</option>
-                    <option value="Local">Local</option>
-                  </Select>
+                    <option value="central">Central</option>
+                    <option value="state">State</option>
+                    <option value="district">District</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -235,12 +195,22 @@ function AdminSchemeForm({ scheme, onClose, onSubmit }) {
                 </label>
                 <textarea
                   className="w-full min-h-[100px] p-2 border rounded-md"
-                  value={formData.application}
-                  onChange={(e) => handleInputChange('application', e.target.value)}
+                  value={formData.applicationProcedure}
+                  onChange={(e) => handleInputChange('applicationProcedure', e.target.value)}
                   placeholder="Enter application process"
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Required Documents</h3>
+              <textarea
+                className="w-full min-h-[100px] p-2 border rounded-md"
+                value={formData.documentsRequired}
+                onChange={(e) => handleInputChange('documentsRequired', e.target.value)}
+                placeholder="Enter required documents"
+              />
             </div>
 
             {/* Documents

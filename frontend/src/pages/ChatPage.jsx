@@ -5,18 +5,18 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent } from '../components/ui/card'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { chatAPI } from '../services/api'
+import { chatAPI, getSupportedLanguage } from '../services/api'
 import toast from 'react-hot-toast'
 
 const ChatPage = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
-  
+
   const messagesEndRef = useRef(null)
   const recognitionRef = useRef(null)
   const synthesisRef = useRef(null)
@@ -96,26 +96,26 @@ const ChatPage = () => {
       const response = await chatAPI.sendMessage({
         message: inputMessage,
         sessionId,
-        language: 'en' // Will be updated based on user's language preference
+        language: getSupportedLanguage(i18n.resolvedLanguage || i18n.language)
       })
 
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: response.response,
-        relevantSchemes: response.relevantSchemes,
+        content: response.data.response,
+        relevantSchemes: response.data.relevantSchemes,
         timestamp: new Date().toISOString()
       }
 
       setMessages(prev => [...prev, botMessage])
-      
+
       // Speak the response
-      speakText(response.response)
-      
+      speakText(response.data.response)
+
     } catch (error) {
       console.error('Chat error:', error)
       toast.error('Failed to get response. Please try again.')
-      
+
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',

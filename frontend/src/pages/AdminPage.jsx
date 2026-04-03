@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { 
-  Plus, 
-  Upload, 
-  Settings, 
-  LogOut, 
-  BarChart3, 
-  FileText, 
-  Users, 
+import {
+  Plus,
+  Upload,
+  Settings,
+  LogOut,
+  BarChart3,
+  FileText,
+  Users,
   Search,
   Edit,
   Trash2,
@@ -18,7 +18,7 @@ import {
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card } from '../components/ui/card'
-import { adminAPI } from '../services/api'
+import { adminAPI, schemesAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import AdminSchemeForm from '../components/AdminSchemeForm'
 import AdminStats from '../components/AdminStats'
@@ -26,7 +26,6 @@ import AdminStats from '../components/AdminStats'
 function AdminPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [schemes, setSchemes] = useState([])
   const [stats, setStats] = useState(null)
@@ -37,41 +36,50 @@ function AdminPage() {
 
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [navigate])
 
-  const checkAuth = async () => {
-    try {
-      await adminAPI.verifySession()
-      setIsAuthenticated(true)
-      loadData()
-    } catch (error) {
+  const checkAuth = () => {
+    const sessionId = localStorage.getItem('admin-session')
+    if (!sessionId) {
       navigate('/admin/login')
-    } finally {
-      setIsLoading(false)
+    } else {
+      loadData()
     }
   }
 
   const loadData = async () => {
     try {
+      setIsLoading(true)
       const [schemesResponse, statsResponse] = await Promise.all([
-        adminAPI.getSchemes(),
+        schemesAPI.getAllSchemes({ limit: 100 }),
         adminAPI.getStats()
       ])
-      
+
       setSchemes(schemesResponse.data.schemes || [])
       setStats(statsResponse.data)
     } catch (error) {
-      toast.error('Failed to load data')
+      if (String(error.message).toLowerCase().includes('unauthorized') || String(error.message).toLowerCase().includes('expired')) {
+        localStorage.removeItem('admin-session')
+        toast.error('Session expired. Please login again.')
+        navigate('/admin/login')
+        return
+      }
+
+      toast.error('Failed to load admin data')
+      console.error(error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleLogout = async () => {
     try {
       await adminAPI.logout()
+    } catch (error) {
+      console.warn('Logout API failed, clearing local session anyway:', error.message)
+    } finally {
       localStorage.removeItem('admin-session')
       navigate('/admin/login')
-    } catch (error) {
-      toast.error('Logout failed')
     }
   }
 
@@ -111,10 +119,12 @@ function AdminPage() {
     }
   }
 
-  const filteredSchemes = schemes.filter(scheme =>
-    scheme.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scheme.category.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredSchemes = schemes.filter((scheme) => {
+    const name = String(scheme?.name || '').toLowerCase()
+    const category = String(scheme?.category || '').toLowerCase()
+    const query = String(searchQuery || '').toLowerCase()
+    return name.includes(query) || category.includes(query)
+  })
 
   if (isLoading) {
     return (
@@ -122,10 +132,6 @@ function AdminPage() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     )
-  }
-
-  if (!isAuthenticated) {
-    return null
   }
 
   return (
@@ -181,7 +187,7 @@ function AdminPage() {
                 <Users className="w-8 h-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Queries</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalQueries}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalViews ?? 0}</p>
                 </div>
               </div>
             </Card>
@@ -191,7 +197,7 @@ function AdminPage() {
                 <BarChart3 className="w-8 h-8 text-purple-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Categories</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.categories?.length || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.categoriesCount ?? 0}</p>
                 </div>
               </div>
             </Card>
@@ -201,7 +207,7 @@ function AdminPage() {
                 <Search className="w-8 h-8 text-orange-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Recent Activity</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.recentActivity?.length || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeSchemes ?? 0}</p>
                 </div>
               </div>
             </Card>
@@ -250,7 +256,8 @@ function AdminPage() {
                 if (file) {
                   try {
                     const response = await adminAPI.uploadDataset(file)
-                    toast.success(`Dataset uploaded successfully! Added ${response.data.records} schemes.`)
+                    const importedCount = response.data?.schemsCount ?? 0
+                    toast.success(`Dataset uploaded successfully! Added ${importedCount} schemes.`)
                     loadData() // Refresh the data to show new schemes
                   } catch (error) {
                     toast.error(error.message || 'Failed to upload dataset')
@@ -284,23 +291,23 @@ function AdminPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSchemes.map((scheme) => (
-                  <tr key={scheme.id} className="hover:bg-gray-50">
+                {filteredSchemes.map((scheme, index) => (
+                  <tr key={scheme._id || scheme.id || `${scheme.name}-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {scheme.name}
                       </div>
                       <div className="text-sm text-gray-500">
-                        ID: {scheme.id}
+                        ID: {scheme._id || scheme.id}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {scheme.category}
+                        {scheme.category || 'General'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(scheme.lastUpdated).toLocaleDateString()}
+                      {scheme.updatedAt ? new Date(scheme.updatedAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -314,7 +321,7 @@ function AdminPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteScheme(scheme.id)}
+                          onClick={() => handleDeleteScheme(scheme._id || scheme.id)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -346,7 +353,7 @@ function AdminPage() {
           <AdminSchemeForm
             scheme={editingScheme}
             onClose={() => setEditingScheme(null)}
-            onSubmit={(data) => handleUpdateScheme(editingScheme.id, data)}
+            onSubmit={(data) => handleUpdateScheme(editingScheme._id || editingScheme.id, data)}
           />
         )}
 

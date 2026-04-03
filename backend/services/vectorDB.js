@@ -1,417 +1,350 @@
-const { ChromaClient } = require('chromadb');
-const LocalLLMService = require('./localLLM');
-const HuggingFaceLLMService = require('./huggingFaceLLM');
-const SimpleLocalLLMService = require('./simpleLocalLLM');
+const fs = require('fs');
+const path = require('path');
+const NodeCache = require('node-cache');
 
-// Choose your preferred local LLM service
-const USE_OLLAMA = process.env.USE_OLLAMA === 'true';
-const USE_HUGGINGFACE = process.env.USE_HUGGINGFACE === 'true';
+// For embeddings - using a simple approach with transformers
+let embedder = null;
+const embeddingCache = new NodeCache({ stdTTL: 3600 });
 
-let localLLM;
-if (USE_OLLAMA) {
-  localLLM = new LocalLLMService();
-} else if (USE_HUGGINGFACE) {
-  localLLM = new HuggingFaceLLMService();
-} else {
-  localLLM = new SimpleLocalLLMService(); // Default to simple service
-}
+const STOPWORDS = new Set([
+  'the', 'is', 'are', 'a', 'an', 'for', 'to', 'of', 'in', 'on', 'and', 'or',
+  'with', 'about', 'scheme', 'schemes', 'need', 'want', 'looking', 'find', 'me'
+]);
 
-let chromaClient;
-let collection;
+const QUERY_EXPANSIONS = {
+  farmer: ['agriculture', 'agri', 'kisan', 'crop'],
+  student: ['scholarship', 'education', 'school', 'college'],
+  pension: ['elderly', 'senior', 'oldage', 'retirement'],
+  elderly: ['senior', 'pension', 'oldage'],
+  women: ['female', 'girl', 'mahila'],
+  disability: ['disabled', 'divyang']
+};
 
-/**
- * Initialize ChromaDB client and collection
- */
-async function initializeVectorDB() {
-  try {
-    // Initialize ChromaDB client
-    // Allow either full URL in CHROMA_HOST or host+port via CHROMA_PORT
-    const chromaHost = process.env.CHROMA_HOST || 'http://localhost:8000';
-    const chromaPort = process.env.CHROMA_PORT;
-    const chromaPath = chromaHost.startsWith('http')
-      ? (chromaPort ? `${chromaHost.replace(/\/$/, '')}:${chromaPort}` : chromaHost)
-      : `http://${chromaHost}:${chromaPort || '8000'}`;
+const normalizeText = (value = '') =>
+  String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-    chromaClient = new ChromaClient({
-      path: chromaPath
-    });
-    
-    // Create or get collection
-    const collectionName = 'government_schemes';
-    
-    try {
-      collection = await chromaClient.getCollection({
-        name: collectionName
-      });
-      console.log(`📊 Connected to existing collection: ${collectionName}`);
-    } catch (error) {
-      // Collection doesn't exist, create it
-      collection = await chromaClient.createCollection({
-        name: collectionName,
-        metadata: {
-          description: 'Government schemes for RAG-based chatbot',
-          created_at: new Date().toISOString()
-        }
-      });
-      console.log(`📊 Created new collection: ${collectionName}`);
-    }
-    
-    // Check if collection is empty and populate it
-    const count = await collection.count();
-    if (count === 0) {
-      console.log('📝 Collection is empty, populating with sample data...');
-      await populateVectorDB();
-    } else {
-      console.log(`📊 Collection contains ${count} documents`);
-    }
-    
-  } catch (error) {
-    console.error('❌ Vector database initialization failed:', error);
-    // Fallback to in-memory storage for development
-    console.log('🔄 Falling back to in-memory vector storage...');
-    await initializeInMemoryVectorDB();
+const getQueryTerms = (query = '') =>
+  normalizeText(query)
+    .split(' ')
+    .filter((term) => term.length > 2 && !STOPWORDS.has(term));
+
+const expandQueryTerms = (terms = []) => {
+  const expanded = new Set(terms);
+  for (const term of terms) {
+    const additions = QUERY_EXPANSIONS[term] || [];
+    for (const add of additions) expanded.add(add);
   }
-}
+  return Array.from(expanded);
+};
 
-/**
- * Fallback in-memory vector database for development
- */
-let inMemoryVectors = [];
-let inMemoryEmbeddings = [];
+const calculateKeywordScore = (scheme = {}, terms = []) => {
+  if (!terms.length) return 0;
 
-async function initializeInMemoryVectorDB() {
-  console.log('💾 Initializing in-memory vector database...');
-  await populateInMemoryVectorDB();
-}
+  const name = normalizeText(scheme.name);
+  const category = normalizeText(scheme.category);
+  const details = normalizeText(scheme.details);
+  const benefits = normalizeText(scheme.benefits);
+  const eligibility = normalizeText(scheme.eligibility);
 
-/**
- * Generate embeddings using local model
- */
-async function generateEmbedding(text) {
+  let score = 0;
+
+  for (const term of terms) {
+    if (name.includes(term)) score += 1.0;
+    if (category.includes(term)) score += 0.8;
+    if (details.includes(term)) score += 0.5;
+    if (benefits.includes(term)) score += 0.5;
+    if (eligibility.includes(term)) score += 0.4;
+  }
+
+  const maxPerTerm = 3.2;
+  return Math.min(1, score / (terms.length * maxPerTerm));
+};
+
+// Initialize embeddings model
+const initializeEmbeddings = async () => {
   try {
-    return await localLLM.generateEmbedding(text);
+    if (!embedder && process.env.USE_HUGGINGFACE === 'true') {
+      const { pipeline } = await import('@xenova/transformers');
+      embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      console.log('✓ Embeddings model loaded');
+    }
   } catch (error) {
-    console.error('❌ Failed to generate embedding:', error);
-    // Fallback to simple text hashing for development
+    console.warn('Warning: Could not load transformer model for embeddings:', error.message);
+    console.warn('Using fallback embedding strategy');
+  }
+};
+
+// Generate embedding for text
+const generateEmbedding = async (text) => {
+  const cacheKey = `embed_${text}`;
+
+  // Check cache first
+  if (embeddingCache.has(cacheKey)) {
+    return embeddingCache.get(cacheKey);
+  }
+
+  try {
+    if (embedder) {
+      // Use transformer embeddings
+      const result = await embedder(text, { pooling: 'mean', normalize: true });
+      const embedding = Array.from(result.data);
+      embeddingCache.set(cacheKey, embedding);
+      return embedding;
+    } else {
+      // Simple fallback: hash-based deterministic embedding
+      return generateSimpleEmbedding(text);
+    }
+  } catch (error) {
+    console.warn('Embedding generation failed, using fallback:', error.message);
     return generateSimpleEmbedding(text);
   }
-}
+};
 
-/**
- * Simple embedding fallback for development
- */
-function generateSimpleEmbedding(text) {
-  // Simple hash-based embedding for development
-  const words = text.toLowerCase().split(/\s+/);
-  const embedding = new Array(1536).fill(0);
-  
-  words.forEach(word => {
-    const hash = word.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    const index = Math.abs(hash) % 1536;
-    embedding[index] += 1;
-  });
-  
-  return embedding;
-}
+// Simple deterministic embedding fallback (for development)
+const generateSimpleEmbedding = (text) => {
+  const words = text.toLowerCase().split(/\W+/);
+  const embedding = new Array(384).fill(0);
 
-/**
- * Populate vector database with government schemes
- */
-async function populateVectorDB() {
-  const { getAllSchemes } = require('./database');
-  const schemes = getAllSchemes();
-  
-  console.log(`📝 Processing ${schemes.length} schemes for vector database...`);
-  
-  const documents = [];
-  const metadatas = [];
-  const ids = [];
-  const embeddings = [];
-  
-  for (const scheme of schemes) {
-    // Create comprehensive text for each scheme
-    const schemeText = createSchemeText(scheme);
-    
-    // Generate embedding
-    const embedding = await generateEmbedding(schemeText);
-    
-    // Prepare data for ChromaDB
-    documents.push(schemeText);
-    metadatas.push({
-      id: scheme.id,
-      name: scheme.name,
-      category: scheme.category,
-      tags: scheme.tags?.join(', ') || '',
-      language: 'en'
-    });
-    ids.push(scheme.id);
-    embeddings.push(embedding);
-  }
-  
-  // Add to ChromaDB
-  await collection.add({
-    documents,
-    metadatas,
-    ids,
-    embeddings
-  });
-  
-  console.log(`✅ Added ${schemes.length} schemes to vector database`);
-}
-
-/**
- * Batch add multiple schemes to the vector database
- */
-async function addSchemesToVectorDB(schemes, batchSize = parseInt(process.env.BATCH_SIZE || '500')) {
-  try {
-    if (!schemes || schemes.length === 0) {
-      return;
+  words.forEach((word, idx) => {
+    const hash = word.split('').reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0);
+    for (let i = 0; i < embedding.length; i++) {
+      embedding[i] += (hash * Math.sin(i + idx)) / 1000;
     }
-
-    if (collection) {
-      // ChromaDB path
-      for (let start = 0; start < schemes.length; start += batchSize) {
-        const batch = schemes.slice(start, start + batchSize);
-
-        const documents = [];
-        const metadatas = [];
-        const ids = [];
-        const embeddings = [];
-
-        for (const scheme of batch) {
-          const schemeText = createSchemeText(scheme);
-          const embedding = await generateEmbedding(schemeText);
-          documents.push(schemeText);
-          metadatas.push({
-            id: scheme.id,
-            name: scheme.name,
-            category: scheme.category,
-            tags: scheme.tags?.join(', ') || '',
-            language: 'en'
-          });
-          ids.push(scheme.id);
-          embeddings.push(embedding);
-        }
-
-        await collection.add({
-          documents,
-          metadatas,
-          ids,
-          embeddings
-        });
-
-        console.log(`✅ Added batch ${Math.floor(start / batchSize) + 1} (${batch.length} schemes)`);
-      }
-    } else {
-      // In-memory fallback path
-      for (const scheme of schemes) {
-        const schemeText = createSchemeText(scheme);
-        const embedding = await generateEmbedding(schemeText);
-        inMemoryVectors.push({
-          id: scheme.id,
-          text: schemeText,
-          metadata: {
-            id: scheme.id,
-            name: scheme.name,
-            category: scheme.category,
-            tags: scheme.tags?.join(', ') || '',
-            language: 'en'
-          }
-        });
-        inMemoryEmbeddings.push(embedding);
-      }
-      console.log(`✅ Added ${schemes.length} schemes to in-memory vector database`);
-    }
-  } catch (error) {
-    console.error('❌ Failed batch adding schemes to vector database:', error);
-    throw error;
-  }
-}
-
-/**
- * Populate in-memory vector database
- */
-async function populateInMemoryVectorDB() {
-  const { getAllSchemes } = require('./database');
-  const schemes = getAllSchemes();
-  
-  console.log(`📝 Processing ${schemes.length} schemes for in-memory vector database...`);
-  
-  for (const scheme of schemes) {
-    const schemeText = createSchemeText(scheme);
-    const embedding = await generateEmbedding(schemeText);
-    
-    inMemoryVectors.push({
-      id: scheme.id,
-      text: schemeText,
-      metadata: {
-        id: scheme.id,
-        name: scheme.name,
-        category: scheme.category,
-        tags: scheme.tags?.join(', ') || '',
-        language: 'en'
-      }
-    });
-    
-    inMemoryEmbeddings.push(embedding);
-  }
-  
-  console.log(`✅ Added ${schemes.length} schemes to in-memory vector database`);
-}
-
-/**
- * Create comprehensive text representation of a scheme
- */
-function createSchemeText(scheme) {
-  return `
-    Scheme Name: ${scheme.name}
-    Category: ${scheme.category}
-    Objective: ${scheme.objective}
-    Eligibility: ${scheme.eligibility?.join(', ')}
-    Documents Required: ${scheme.documentsRequired?.join(', ')}
-    Application Procedure: ${scheme.applicationProcedure?.join(', ')}
-    Benefits: ${scheme.benefits}
-    Contact Info: ${scheme.contactInfo}
-    Website: ${scheme.website}
-    Tags: ${scheme.tags?.join(', ')}
-  `.trim();
-}
-
-/**
- * Search for relevant schemes using vector similarity
- */
-async function searchSimilarSchemes(query, limit = 5) {
-  try {
-    // Generate embedding for the query
-    const queryEmbedding = await generateEmbedding(query);
-    
-    if (collection) {
-      // Use ChromaDB
-      const results = await collection.query({
-        queryEmbeddings: [queryEmbedding],
-        nResults: limit
-      });
-      
-      return results.metadatas[0].map((metadata, index) => ({
-        id: metadata.id,
-        name: metadata.name,
-        category: metadata.category,
-        score: 1 - results.distances[0][index], // Convert distance to similarity score
-        metadata
-      }));
-    } else {
-      // Use in-memory search
-      return searchInMemoryVectors(queryEmbedding, limit);
-    }
-  } catch (error) {
-    console.error('❌ Vector search failed:', error);
-    return [];
-  }
-}
-
-/**
- * Search in-memory vectors using cosine similarity
- */
-function searchInMemoryVectors(queryEmbedding, limit) {
-  const similarities = inMemoryEmbeddings.map((embedding, index) => {
-    const similarity = cosineSimilarity(queryEmbedding, embedding);
-    return {
-      index,
-      similarity
-    };
   });
-  
-  // Sort by similarity and get top results
-  similarities.sort((a, b) => b.similarity - a.similarity);
-  
-  return similarities.slice(0, limit).map(item => {
-    const vector = inMemoryVectors[item.index];
-    return {
-      id: vector.id,
-      name: vector.metadata.name,
-      category: vector.metadata.category,
-      score: item.similarity,
-      metadata: vector.metadata
-    };
-  });
-}
 
-/**
- * Calculate cosine similarity between two vectors
- */
-function cosineSimilarity(vecA, vecB) {
-  if (vecA.length !== vecB.length) {
-    throw new Error('Vectors must have the same length');
-  }
-  
+  return embedding.map(v => v / (1 + Math.abs(v)));
+};
+
+// Vector similarity (cosine)
+const cosineSimilarity = (a, b) => {
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
-  
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    normA += vecA[i] * vecA[i];
-    normB += vecB[i] * vecB[i];
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
   }
-  
+
   normA = Math.sqrt(normA);
   normB = Math.sqrt(normB);
-  
-  if (normA === 0 || normB === 0) {
-    return 0;
-  }
-  
+
+  if (normA === 0 || normB === 0) return 0;
   return dotProduct / (normA * normB);
+};
+
+// In-memory vector store (fallback when ChromaDB unavailable)
+class InMemoryVectorStore {
+  constructor() {
+    this.documents = [];
+    this.embeddings = {};
+  }
+
+  async add(documents) {
+    for (const doc of documents) {
+      const embedding = await generateEmbedding(doc.content || doc.text || '');
+      this.documents.push({ ...doc, embedding });
+      this.embeddings[doc.id] = embedding;
+    }
+  }
+
+  async query(text, topK = 5) {
+    const queryEmbedding = await generateEmbedding(text);
+
+    const similarities = this.documents.map((doc, idx) => ({
+      doc,
+      similarity: cosineSimilarity(queryEmbedding, doc.embedding),
+      index: idx
+    }));
+
+    return similarities
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, topK)
+      .map(item => ({
+        ...item.doc,
+        score: item.similarity
+      }));
+  }
+
+  async update(id, document) {
+    const doc = this.documents.find(d => d.id === id);
+    if (doc) {
+      const embedding = await generateEmbedding(document.content || document.text || '');
+      Object.assign(doc, document, { embedding });
+      this.embeddings[id] = embedding;
+    }
+  }
+
+  async delete(id) {
+    const idx = this.documents.findIndex(d => d.id === id);
+    if (idx > -1) {
+      this.documents.splice(idx, 1);
+      delete this.embeddings[id];
+    }
+  }
+
+  clear() {
+    this.documents = [];
+    this.embeddings = {};
+  }
 }
 
-/**
- * Add new scheme to vector database
- */
-async function addSchemeToVectorDB(scheme) {
-  try {
-    const schemeText = createSchemeText(scheme);
-    const embedding = await generateEmbedding(schemeText);
-    
-    if (collection) {
-      await collection.add({
-        documents: [schemeText],
-        metadatas: [{
-          id: scheme.id,
-          name: scheme.name,
-          category: scheme.category,
-          tags: scheme.tags?.join(', ') || '',
-          language: 'en'
-        }],
-        ids: [scheme.id],
-        embeddings: [embedding]
-      });
-    } else {
-      inMemoryVectors.push({
-        id: scheme.id,
-        text: schemeText,
-        metadata: {
-          id: scheme.id,
-          name: scheme.name,
-          category: scheme.category,
-          tags: scheme.tags?.join(', ') || '',
-          language: 'en'
-        }
-      });
-      inMemoryEmbeddings.push(embedding);
+// VectorDB Manager
+class VectorDBManager {
+  constructor() {
+    this.store = new InMemoryVectorStore();
+    this.initialized = false;
+  }
+
+  async initialize() {
+    await initializeEmbeddings();
+    this.initialized = true;
+    console.log('✓ Vector DB initialized');
+  }
+
+  async addSchemes(schemes) {
+    const documents = schemes.map(scheme => ({
+      id: scheme._id || scheme.id,
+      content: `${scheme.name || ''} ${scheme.details || ''} ${scheme.benefits || ''} ${scheme.eligibility || ''}`,
+      metadata: scheme
+    }));
+
+    await this.store.add(documents);
+  }
+
+  async searchSchemesByKeywords(query, limit = 10) {
+    const Scheme = require('../models/Scheme');
+    const terms = getQueryTerms(query);
+    const base = normalizeText(query);
+    const regexList = (terms.length ? terms : [base])
+      .filter(Boolean)
+      .map((term) => new RegExp(term, 'i'));
+
+    const orConditions = [];
+    for (const regex of regexList) {
+      orConditions.push(
+        { name: regex },
+        { category: regex },
+        { details: regex },
+        { benefits: regex },
+        { eligibility: regex }
+      );
     }
-    
-    console.log(`✅ Added scheme ${scheme.id} to vector database`);
-  } catch (error) {
-    console.error('❌ Failed to add scheme to vector database:', error);
+
+    if (!orConditions.length) return [];
+
+    return Scheme.find({ isActive: true, $or: orConditions })
+      .limit(limit)
+      .lean();
+  }
+
+  async searchSchemes(query, topK = 5) {
+    try {
+      const terms = expandQueryTerms(getQueryTerms(query));
+      const semanticRaw = this.store.documents.length > 0
+        ? await this.store.query(query, Math.max(topK * 4, 20))
+        : [];
+      const keywordRaw = await this.searchSchemesByKeywords(query, Math.max(topK * 6, 30));
+
+      const merged = new Map();
+
+      for (const item of semanticRaw) {
+        const scheme = item.metadata || {};
+        const id = scheme._id || scheme.id;
+        if (!id) continue;
+        merged.set(String(id), {
+          ...scheme,
+          _semanticScore: Math.max(0, item.score || 0),
+          _keywordScore: calculateKeywordScore(scheme, terms)
+        });
+      }
+
+      for (const scheme of keywordRaw) {
+        const id = scheme._id || scheme.id;
+        if (!id) continue;
+
+        const existing = merged.get(String(id));
+        const keywordScore = calculateKeywordScore(scheme, terms);
+
+        if (existing) {
+          existing._keywordScore = Math.max(existing._keywordScore || 0, keywordScore);
+        } else {
+          merged.set(String(id), {
+            ...scheme,
+            _semanticScore: 0,
+            _keywordScore: keywordScore
+          });
+        }
+      }
+
+      const ranked = Array.from(merged.values())
+        .map((scheme) => {
+          const titleBoost = terms.some((term) => normalizeText(scheme.name).includes(term)) ? 0.08 : 0;
+          const categoryBoost = terms.some((term) => normalizeText(scheme.category).includes(term)) ? 0.05 : 0;
+          const relevanceScore = Math.min(
+            1,
+            (scheme._semanticScore * 0.55) + (scheme._keywordScore * 0.45) + titleBoost + categoryBoost
+          );
+
+          return {
+            ...scheme,
+            relevanceScore
+          };
+        })
+        .sort((a, b) => b.relevanceScore - a.relevanceScore)
+        .slice(0, topK)
+        .map(({ _semanticScore, _keywordScore, ...clean }) => clean);
+
+      return ranked;
+    } catch (error) {
+      console.error('Error searching schemes:', error);
+      return [];
+    }
+  }
+
+  async updateScheme(schemeId, scheme) {
+    const document = {
+      id: schemeId,
+      content: `${scheme.name || ''} ${scheme.details || ''} ${scheme.benefits || ''} ${scheme.eligibility || ''}`,
+      metadata: scheme
+    };
+    await this.store.update(schemeId, document);
+  }
+
+  async deleteScheme(schemeId) {
+    await this.store.delete(schemeId);
+  }
+
+  clear() {
+    this.store.clear();
+  }
+
+  getStats() {
+    return {
+      documentsCount: this.store.documents.length,
+      status: this.initialized ? 'ready' : 'initializing'
+    };
   }
 }
+
+let vectorDBInstance = null;
+
+const getVectorDB = () => {
+  if (!vectorDBInstance) {
+    vectorDBInstance = new VectorDBManager();
+  }
+  return vectorDBInstance;
+};
 
 module.exports = {
-  initializeVectorDB,
-  searchSimilarSchemes,
-  addSchemeToVectorDB,
-  addSchemesToVectorDB
+  getVectorDB,
+  generateEmbedding,
+  cosineSimilarity,
+  initializeEmbeddings,
+  VectorDBManager
 };

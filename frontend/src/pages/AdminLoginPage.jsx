@@ -12,7 +12,7 @@ function AdminLoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
@@ -20,15 +20,10 @@ function AdminLoginPage() {
 
   useEffect(() => {
     // Check if already logged in
-    const checkSession = async () => {
-      try {
-        await adminAPI.verifySession()
-        navigate('/admin')
-      } catch (error) {
-        // Not logged in, stay on login page
-      }
+    const sessionId = localStorage.getItem('admin-session')
+    if (sessionId) {
+      navigate('/admin')
     }
-    checkSession()
   }, [navigate])
 
   const handleInputChange = (e) => {
@@ -45,13 +40,10 @@ function AdminLoginPage() {
 
     try {
       const response = await adminAPI.login(formData)
-      
+
       if (response.success) {
-        // Store session token
-        if (response.sessionToken) {
-          localStorage.setItem('admin-session', response.sessionToken)
-        }
-        
+        // Store session ID from backend
+        localStorage.setItem('admin-session', response.data.sessionId)
         toast.success('Login successful!')
         navigate('/admin')
       }
@@ -75,18 +67,18 @@ function AdminLoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium text-gray-700">
-              Username
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              Email
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Enter username"
+                placeholder="admin@ruralconnect.com"
                 className="pl-10"
                 required
               />
@@ -140,8 +132,8 @@ function AdminLoginPage() {
         <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
             <strong>Default credentials:</strong><br />
-            Username: admin<br />
-            Password: admin123!@#
+            Email: admin@ruralconnect.com<br />
+            Password: admin123
           </p>
         </div>
       </Card>
